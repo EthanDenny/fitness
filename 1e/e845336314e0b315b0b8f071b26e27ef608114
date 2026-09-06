@@ -1,0 +1,29 @@
+src/components/RollingAverageChart.astro
+  s_dd7bb5d1a21441::t_5e933c6f535faf 51,99,116-121
+  s_dd7bb5d1a21441::t_7d6188e44fc575 1-50,52-98,100-115,122-167
+src/pages/index.astro
+  s_dd7bb5d1a21441::t_5e933c6f535faf 246-254,309,311,313,374
+  s_dd7bb5d1a21441::t_0cd2b25492897f 322,329
+  s_dd7bb5d1a21441::t_88ae04f0e92b86 190,192-199,201-242,314,383-394,403-408
+  s_dd7bb5d1a21441::t_7d6188e44fc575 4-5,29-31,90,107-167,187-189,243-245,255-256,310,312,375-377
+  s_dd7bb5d1a21441::t_d359e18b30cd4a 315
+src/components/WorkoutCalendar.astro
+  s_dd7bb5d1a21441::t_5e933c6f535faf 112-115,120-123,178-179,206
+  s_dd7bb5d1a21441::t_7d6188e44fc575 1-111,116-119,124-177,180-205,207-230
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "1ee845336314e0b315b0b8f071b26e27ef608114",
+  "prompts": {},
+  "sessions": {
+    "s_dd7bb5d1a21441": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a07491-0022-7200-b16e-12ebdd21b411",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Ethan Denny <ethandenny@protonmail.com>"
+    }
+  }
+}
