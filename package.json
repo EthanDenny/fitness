@@ -1,0 +1,31 @@
+{
+  "name": "fitness",
+  "type": "module",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name fitness --branch main",
+    "preview": "astro preview",
+    "astro": "astro",
+    "pull": "node --env-file-if-exists=.env scripts/pull-fitness-data.ts",
+    "hevy:pull": "node --env-file-if-exists=.env scripts/pull-hevy-workouts.ts",
+    "cronometer:pull": "node --env-file-if-exists=.env scripts/pull-cronometer.ts",
+    "test": "node --test scripts/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "astro": "^7.3.1"
+  },
+  "allowScripts": {
+    "esbuild": true
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.129.0"
+  }
+}

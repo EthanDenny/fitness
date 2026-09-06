@@ -1,0 +1,302 @@
+---
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
+interface Nutrition {
+  date: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber: number;
+  weight?: number;
+  weightUnit?: string;
+}
+
+interface Workout {
+  title: string;
+  start_time: string;
+}
+
+interface Day {
+  date: string;
+  nutrition?: Nutrition;
+  workouts: Workout[];
+}
+
+const nutritionPath = resolve(process.cwd(), "data/cronometer/nutrition.csv");
+const workoutsPath = resolve(process.cwd(), "data/hevy-workouts.json");
+
+const nutrition: Nutrition[] = existsSync(nutritionPath)
+  ? readFileSync(nutritionPath, "utf8")
+      .trim()
+      .split(/\r?\n/)
+      .slice(1)
+      .filter(Boolean)
+      .map((line) => {
+        const [date, calories, protein, carbs, fat, fiber, weight, weightUnit] =
+          line.split(",");
+        return {
+          date,
+          calories: Number(calories),
+          protein: Number(protein),
+          carbs: Number(carbs),
+          fat: Number(fat),
+          fiber: Number(fiber),
+          weight: weight ? Number(weight) : undefined,
+          weightUnit: weightUnit || undefined,
+        };
+      })
+  : [];
+
+let workouts: Workout[] = [];
+if (existsSync(workoutsPath)) {
+  const data: unknown = JSON.parse(readFileSync(workoutsPath, "utf8"));
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    "workouts" in data &&
+    Array.isArray(data.workouts)
+  ) {
+    workouts = data.workouts.filter(
+      (workout): workout is Workout =>
+        typeof workout === "object" &&
+        workout !== null &&
+        "title" in workout &&
+        typeof workout.title === "string" &&
+        "start_time" in workout &&
+        typeof workout.start_time === "string",
+    );
+  }
+}
+
+const days = new Map<string, Day>();
+for (const entry of nutrition) {
+  days.set(entry.date, { date: entry.date, nutrition: entry, workouts: [] });
+}
+for (const workout of workouts) {
+  const date = workout.start_time.slice(0, 10);
+  const day = days.get(date) ?? { date, workouts: [] };
+  day.workouts.push(workout);
+  days.set(date, day);
+}
+
+const entries = [...days.values()].sort((a, b) => b.date.localeCompare(a.date));
+const formatNumber = (value: number) =>
+  Math.round(value).toLocaleString("en-CA");
+const formatWeight = (value: number) =>
+  value.toLocaleString("en-CA", { maximumFractionDigits: 1 });
+const previousDate = (date: string) => {
+  const value = new Date(`${date}T00:00:00Z`);
+  value.setUTCDate(value.getUTCDate() - 1);
+  return value.toISOString().slice(0, 10);
+};
+const workoutLabel = (day: Day) => {
+  if (day.workouts.length > 0) {
+    return day.workouts.map((workout) => workout.title).join(", ");
+  }
+
+  return days.get(previousDate(day.date))?.workouts.length ? "Rest" : "Skipped";
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content="Daily nutrition and workout history." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Fitness</title>
+  </head>
+  <body>
+    <main>
+      <header class="page-header">
+        <h1>fitness</h1>
+      </header>
+
+      {
+        entries.length > 0 ? (
+          <div class="log">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">date</th>
+                  <th scope="col">calories</th>
+                  <th scope="col">workout</th>
+                  <th scope="col">protein</th>
+                  <th scope="col">carbs</th>
+                  <th scope="col">fat</th>
+                  <th scope="col">fiber</th>
+                  <th scope="col">weight</th>
+                </tr>
+              </thead>
+              <tbody>
+                {entries.map((day) => (
+                  <tr>
+                    <td>
+                      <time datetime={day.date}>{day.date}</time>
+                    </td>
+                    <td>
+                      {day.nutrition
+                        ? `${formatNumber(day.nutrition.calories)} kcal`
+                        : "—"}
+                    </td>
+                    <td>
+                      {workoutLabel(day)}
+                    </td>
+                    <td>
+                      {day.nutrition
+                        ? `${formatNumber(day.nutrition.protein)} g`
+                        : "—"}
+                    </td>
+                    <td>
+                      {day.nutrition
+                        ? `${formatNumber(day.nutrition.carbs)} g`
+                        : "—"}
+                    </td>
+                    <td>
+                      {day.nutrition
+                        ? `${formatNumber(day.nutrition.fat)} g`
+                        : "—"}
+                    </td>
+                    <td>
+                      {day.nutrition
+                        ? `${formatNumber(day.nutrition.fiber)} g`
+                        : "—"}
+                    </td>
+                    <td>
+                      {day.nutrition?.weight !== undefined &&
+                      day.nutrition.weightUnit
+                        ? `${formatWeight(day.nutrition.weight)} ${day.nutrition.weightUnit}`
+                        : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p class="empty">
+            No fitness data yet. Run <code>npm run pull</code>.
+          </p>
+        )
+      }
+    </main>
+  </body>
+</html>
+
+<style>
+  :global(*) {
+    box-sizing: border-box;
+  }
+
+  :global(html) {
+    font-family: ui-monospace, "SFMono-Regular", "Cascadia Code", "Roboto Mono",
+      Consolas, monospace;
+    color: #111;
+    background: #fff;
+    text-transform: lowercase;
+  }
+
+  :global(body) {
+    margin: 0;
+  }
+
+  main {
+    width: min(100% - 2rem, 54rem);
+    margin: 0 auto;
+    padding: 4rem 0;
+  }
+
+  .page-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1.25rem;
+  }
+
+  h1,
+  p,
+  table {
+    margin: 0;
+  }
+
+  h1 {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    letter-spacing: -0.06em;
+  }
+
+  .page-header p {
+    color: #555;
+    font-size: 0.875rem;
+  }
+
+  .log {
+    width: fit-content;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  table {
+    width: max-content;
+    max-width: none;
+    border-collapse: collapse;
+    white-space: nowrap;
+  }
+
+  th,
+  td {
+    padding: 0.75rem 0.5rem;
+    text-align: left;
+  }
+
+  th {
+    color: #111;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: normal;
+    text-transform: lowercase;
+  }
+
+  thead {
+    border-bottom: 1px solid #bbb;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #bbb;
+  }
+
+  td {
+    overflow: hidden;
+    font-size: 1rem;
+    text-overflow: ellipsis;
+  }
+
+  .empty {
+    padding: 2rem 0;
+    line-height: 1.6;
+  }
+
+  code {
+    padding: 0.1rem 0.25rem;
+    border: 1px solid #bbb;
+  }
+
+  @media (max-width: 48rem) {
+    th,
+    td {
+      padding: 0.625rem 0.375rem;
+      font-size: 0.875rem;
+    }
+  }
+
+  @media (max-width: 36rem) {
+    main {
+      width: calc(100% - 1rem);
+      padding-top: 2rem;
+    }
+  }
+</style>
