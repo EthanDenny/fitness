@@ -1,0 +1,167 @@
+---
+interface Point {
+  date: string;
+  value: number;
+}
+
+interface Props {
+  title: string;
+  points: Point[];
+  unit: string;
+  decimals?: number;
+}
+
+const { title, points, unit, decimals = 0 } = Astro.props;
+const width = 360;
+const height = 180;
+const padding = { top: 16, right: 12, bottom: 28, left: 48 };
+const chartWidth = width - padding.left - padding.right;
+const chartHeight = height - padding.top - padding.bottom;
+const values = points.map(({ value }) => value);
+const minimum = values.length ? Math.min(...values) : 0;
+const maximum = values.length ? Math.max(...values) : 1;
+const baseRange = maximum - minimum || Math.max(Math.abs(maximum) * 0.04, 1);
+const lowerBound = minimum - baseRange * 0.15;
+const upperBound = maximum + baseRange * 0.15;
+const valueRange = upperBound - lowerBound;
+const xPosition = (index: number) =>
+  points.length === 1
+    ? padding.left + chartWidth / 2
+    : padding.left + (index / (points.length - 1)) * chartWidth;
+const yPosition = (value: number) =>
+  padding.top + ((upperBound - value) / valueRange) * chartHeight;
+const path = points
+  .map(
+    ({ value }, index) =>
+      `${index === 0 ? "M" : "L"} ${xPosition(index).toFixed(2)} ${yPosition(value).toFixed(2)}`,
+  )
+  .join(" ");
+const ticks = [upperBound, (upperBound + lowerBound) / 2, lowerBound];
+const latest = points.at(-1);
+const formatValue = (value: number) =>
+  value.toLocaleString("en-CA", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+const formatDate = (date: string) => date.slice(5);
+---
+
+<figure>
+  <figcaption>
+    <span>{title} <small>7-day avg</small></span>
+    <strong>{latest ? `${formatValue(latest.value)} ${unit}` : "—"}</strong>
+  </figcaption>
+
+  {
+    points.length ? (
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label={`${title} 7-day rolling average`}
+      >
+        {ticks.map((tick, index) => {
+          const y = padding.top + (index / (ticks.length - 1)) * chartHeight;
+          return (
+            <g>
+              <line
+                x1={padding.left}
+                x2={width - padding.right}
+                y1={y}
+                y2={y}
+              />
+              <text x={padding.left - 8} y={y + 4} text-anchor="end">
+                {formatValue(tick)}
+              </text>
+            </g>
+          );
+        })}
+
+        <path d={path} />
+        {points.map((point, index) => (
+          <circle cx={xPosition(index)} cy={yPosition(point.value)} r="3" />
+        ))}
+
+        <text x={padding.left} y={height - 5} text-anchor="start">
+          {formatDate(points[0].date)}
+        </text>
+        <text x={width - padding.right} y={height - 5} text-anchor="end">
+          {formatDate(points.at(-1)!.date)}
+        </text>
+      </svg>
+    ) : (
+      <p class="empty">no data</p>
+    )
+  }
+</figure>
+
+<style>
+  figure {
+    height: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0.875rem;
+    border: 1px solid #bbb;
+  }
+
+  figcaption {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 1rem;
+  }
+
+  figcaption span {
+    font-weight: 700;
+  }
+
+  figcaption small {
+    color: #555;
+    font-size: 0.75rem;
+    font-weight: 400;
+  }
+
+  figcaption strong {
+    font-weight: 400;
+    white-space: nowrap;
+  }
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: 0.5rem;
+    overflow: visible;
+  }
+
+  line {
+    stroke: #ddd;
+    stroke-width: 1;
+  }
+
+  path {
+    fill: none;
+    stroke: #111;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+  }
+
+  circle {
+    fill: #111;
+  }
+
+  text {
+    fill: #555;
+    font-family: inherit;
+    font-size: 0.75rem;
+  }
+
+  .empty {
+    margin: 0;
+    padding: 3rem 0;
+    color: #555;
+    text-align: center;
+  }
+</style>

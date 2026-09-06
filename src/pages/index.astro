@@ -1,6 +1,8 @@
 ---
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import RollingAverageChart from "../components/RollingAverageChart.astro";
+import WorkoutCalendar from "../components/WorkoutCalendar.astro";
 
 interface Nutrition {
   date: string;
@@ -23,6 +25,9 @@ interface Day {
   nutrition?: Nutrition;
   workouts: Workout[];
 }
+
+type NutritionMetric = "calories" | "protein" | "weight";
+type WorkoutStatus = "worked out" | "rest" | "skipped";
 
 const nutritionPath = resolve(process.cwd(), "data/cronometer/nutrition.csv");
 const workoutsPath = resolve(process.cwd(), "data/hevy-workouts.json");
@@ -82,6 +87,7 @@ for (const workout of workouts) {
 }
 
 const entries = [...days.values()].sort((a, b) => b.date.localeCompare(a.date));
+const chronologicalDates = [...days.keys()].sort((a, b) => a.localeCompare(b));
 const formatNumber = (value: number) =>
   Math.round(value).toLocaleString("en-CA");
 const formatWeight = (value: number) =>
@@ -98,6 +104,67 @@ const workoutLabel = (day: Day) => {
 
   return days.get(previousDate(day.date))?.workouts.length ? "Rest" : "Skipped";
 };
+
+const toDate = (date: string) => new Date(`${date}T00:00:00Z`);
+const toIsoDate = (date: Date) => date.toISOString().slice(0, 10);
+const dateRange = (start: string, end: string) => {
+  const dates: string[] = [];
+  const cursor = toDate(start);
+  const finalDate = toDate(end);
+  while (cursor <= finalDate) {
+    dates.push(toIsoDate(cursor));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return dates;
+};
+
+const startDate = chronologicalDates[0] ?? "";
+const endDate = chronologicalDates.at(-1) ?? "";
+const trackedDates = startDate && endDate ? dateRange(startDate, endDate) : [];
+const rollingAverage = (metric: NutritionMetric) =>
+  trackedDates.flatMap((date) => {
+    const windowStart = toDate(date);
+    windowStart.setUTCDate(windowStart.getUTCDate() - 6);
+    const start = toIsoDate(windowStart);
+    const values = nutrition
+      .filter((entry) => entry.date >= start && entry.date <= date)
+      .map((entry) => entry[metric])
+      .filter((value): value is number =>
+        typeof value === "number" && Number.isFinite(value),
+      );
+
+    return values.length
+      ? [{ date, value: values.reduce((sum, value) => sum + value, 0) / values.length }]
+      : [];
+  });
+const charts = [
+  {
+    title: "weight",
+    points: rollingAverage("weight"),
+    unit: nutrition.findLast((entry) => entry.weightUnit)?.weightUnit ?? "",
+    decimals: 1,
+  },
+  {
+    title: "calories",
+    points: rollingAverage("calories"),
+    unit: "kcal",
+    decimals: 0,
+  },
+  {
+    title: "protein",
+    points: rollingAverage("protein"),
+    unit: "g",
+    decimals: 0,
+  },
+];
+const workoutDays = trackedDates.map((date) => {
+  const status: WorkoutStatus = days.get(date)?.workouts.length
+    ? "worked out"
+    : days.get(previousDate(date))?.workouts.length
+      ? "rest"
+      : "skipped";
+  return { date, status };
+});
 ---
 
 <!doctype html>
@@ -117,65 +184,76 @@ const workoutLabel = (day: Day) => {
 
       {
         entries.length > 0 ? (
-          <div class="log">
-            <table>
-              <thead>
-                <tr>
-                  <th scope="col">date</th>
-                  <th scope="col">calories</th>
-                  <th scope="col">workout</th>
-                  <th scope="col">protein</th>
-                  <th scope="col">carbs</th>
-                  <th scope="col">fat</th>
-                  <th scope="col">fiber</th>
-                  <th scope="col">weight</th>
-                </tr>
-              </thead>
-              <tbody>
-                {entries.map((day) => (
+          <>
+            <div class="log">
+              <table>
+                <thead>
                   <tr>
-                    <td>
-                      <time datetime={day.date}>{day.date}</time>
-                    </td>
-                    <td>
-                      {day.nutrition
-                        ? `${formatNumber(day.nutrition.calories)} kcal`
-                        : "—"}
-                    </td>
-                    <td>
-                      {workoutLabel(day)}
-                    </td>
-                    <td>
-                      {day.nutrition
-                        ? `${formatNumber(day.nutrition.protein)} g`
-                        : "—"}
-                    </td>
-                    <td>
-                      {day.nutrition
-                        ? `${formatNumber(day.nutrition.carbs)} g`
-                        : "—"}
-                    </td>
-                    <td>
-                      {day.nutrition
-                        ? `${formatNumber(day.nutrition.fat)} g`
-                        : "—"}
-                    </td>
-                    <td>
-                      {day.nutrition
-                        ? `${formatNumber(day.nutrition.fiber)} g`
-                        : "—"}
-                    </td>
-                    <td>
-                      {day.nutrition?.weight !== undefined &&
-                      day.nutrition.weightUnit
-                        ? `${formatWeight(day.nutrition.weight)} ${day.nutrition.weightUnit}`
-                        : "—"}
-                    </td>
+                    <th class="column-date" scope="col">date</th>
+                    <th class="column-weight" scope="col">weight</th>
+                    <th class="column-calories" scope="col">calories</th>
+                    <th class="column-workout" scope="col">workout</th>
+                    <th class="column-protein" scope="col">protein</th>
+                    <th class="column-carbs" scope="col">carbs</th>
+                    <th class="column-fat" scope="col">fat</th>
+                    <th class="column-fiber" scope="col">fiber</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {entries.map((day) => (
+                    <tr>
+                      <td class="column-date">
+                        <time datetime={day.date}>{day.date}</time>
+                      </td>
+                      <td class="column-weight">
+                        {day.nutrition?.weight !== undefined &&
+                        day.nutrition.weightUnit
+                          ? `${formatWeight(day.nutrition.weight)} ${day.nutrition.weightUnit}`
+                          : "—"}
+                      </td>
+                      <td class="column-calories">
+                        {day.nutrition
+                          ? `${formatNumber(day.nutrition.calories)} kcal`
+                          : "—"}
+                      </td>
+                      <td class="column-workout">{workoutLabel(day)}</td>
+                      <td class="column-protein">
+                        {day.nutrition
+                          ? `${formatNumber(day.nutrition.protein)} g`
+                          : "—"}
+                      </td>
+                      <td class="column-carbs">
+                        {day.nutrition
+                          ? `${formatNumber(day.nutrition.carbs)} g`
+                          : "—"}
+                      </td>
+                      <td class="column-fat">
+                        {day.nutrition
+                          ? `${formatNumber(day.nutrition.fat)} g`
+                          : "—"}
+                      </td>
+                      <td class="column-fiber">
+                        {day.nutrition
+                          ? `${formatNumber(day.nutrition.fiber)} g`
+                          : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <section class="dashboard-grid" aria-label="fitness trends">
+              {charts.map((chart) => (
+                <RollingAverageChart {...chart} />
+              ))}
+              <WorkoutCalendar
+                startDate={startDate}
+                endDate={endDate}
+                days={workoutDays}
+              />
+            </section>
+          </>
         ) : (
           <p class="empty">
             No fitness data yet. Run <code>npm run pull</code>.
@@ -228,20 +306,27 @@ const workoutLabel = (day: Day) => {
     letter-spacing: -0.06em;
   }
 
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 3rem;
+  }
+
   .page-header p {
     color: #555;
     font-size: 0.875rem;
   }
 
   .log {
-    width: fit-content;
-    max-width: 100%;
+    width: 100%;
     overflow-x: auto;
     overscroll-behavior-inline: contain;
   }
 
   table {
     width: max-content;
+    min-width: 100%;
     max-width: none;
     border-collapse: collapse;
     white-space: nowrap;
@@ -286,10 +371,26 @@ const workoutLabel = (day: Day) => {
   }
 
   @media (max-width: 48rem) {
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+
     th,
     td {
       padding: 0.625rem 0.375rem;
       font-size: 0.875rem;
+    }
+
+    .column-fat,
+    .column-fiber {
+      display: none;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .column-protein,
+    .column-carbs {
+      display: none;
     }
   }
 
@@ -297,6 +398,12 @@ const workoutLabel = (day: Day) => {
     main {
       width: calc(100% - 1rem);
       padding-top: 2rem;
+    }
+  }
+
+  @media (max-width: 32rem) {
+    .column-workout {
+      display: none;
     }
   }
 </style>
