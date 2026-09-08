@@ -1,0 +1,36 @@
+src/components/WorkoutCalendar.astro
+  s_dd7bb5d1a21441::t_c39e70b6b8c04b 80-82,138,144-145
+  s_dd7bb5d1a21441::t_426e6eb724361e 72-73,121,149-153
+  s_dd7bb5d1a21441::t_4eaa69e22475fc 31-38,51-52,54-57,61,91-94,224
+  s_dd7bb5d1a21441::t_84aefcdf8f8c99 30,53,111-116,160
+  s_dd3292f5ed7317::t_ef080f4a44a5ef 154-155
+src/pages/index.astro
+  s_dd7bb5d1a21441::t_ab694ef458e475 188,246-316,392,398-401,453-463,466,472-483,486,489-513,515-541
+  s_dd7bb5d1a21441::t_7661d793b00085 464-465,467-468,514
+src/components/RollingAverageChart.astro
+  s_dd7bb5d1a21441::t_56a211a5d9134c 16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "f55d966d771c8f73d78670a02cf1fe8940173325",
+  "prompts": {},
+  "sessions": {
+    "s_dd3292f5ed7317": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a07e91-febb-7a13-948d-de0a854b911c",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Ethan Denny <ethandenny@protonmail.com>"
+    },
+    "s_dd7bb5d1a21441": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a07491-0022-7200-b16e-12ebdd21b411",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Ethan Denny <ethandenny@protonmail.com>"
+    }
+  }
+}
