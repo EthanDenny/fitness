@@ -27,6 +27,15 @@ const dayFormatter = new Intl.DateTimeFormat("en-CA", {
   year: "numeric",
   timeZone: "UTC",
 });
+const calendarDay = (date: Date) => {
+  const isoDate = toIsoDate(date);
+  return {
+    date: isoDate,
+    label: date.getUTCDate(),
+    status: statuses.get(isoDate),
+    accessibleDate: dayFormatter.format(date),
+  };
+};
 
 const months = [];
 if (startDate && endDate) {
@@ -39,21 +48,17 @@ if (startDate && endDate) {
     const year = cursor.getUTCFullYear();
     const month = cursor.getUTCMonth();
     const dayCount = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-    const monthDays = Array.from({ length: dayCount }, (_, index) => {
-      const date = new Date(Date.UTC(year, month, index + 1));
-      const isoDate = toIsoDate(date);
-      return {
-        date: isoDate,
-        label: index + 1,
-        status: statuses.get(isoDate),
-        accessibleDate: dayFormatter.format(date),
-      };
-    });
+    const leadingDayCount = cursor.getUTCDay();
+    const leadingDays = Array.from({ length: leadingDayCount }, (_, index) =>
+      calendarDay(new Date(Date.UTC(year, month, index - leadingDayCount + 1))),
+    );
+    const monthDays = Array.from({ length: dayCount }, (_, index) =>
+      calendarDay(new Date(Date.UTC(year, month, index + 1))),
+    );
 
     months.push({
       label: monthFormatter.format(cursor),
-      leadingDays: cursor.getUTCDay(),
-      days: monthDays,
+      days: [...leadingDays, ...monthDays],
     });
     cursor.setUTCMonth(cursor.getUTCMonth() + 1);
   }
@@ -64,31 +69,29 @@ const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
 <section aria-labelledby="calendar-title">
   <header>
-    <h2 id="calendar-title">workout calendar</h2>
-    <ul class="legend" aria-label="workout status legend">
-      <li><span class="key worked-out"></span>worked out</li>
-      <li><span class="key rest"></span>rest</li>
-      <li><span class="key skipped"></span>skipped</li>
-    </ul>
+    <h2 id="calendar-title">workouts</h2>
+    <p class="period">{months.at(-1)?.label}</p>
   </header>
 
   <div class="months">
     {
       months.map((month) => (
         <article>
-          <h3>{month.label}</h3>
+          {months.length > 1 && month !== months.at(-1) && (
+            <h3>{month.label}</h3>
+          )}
           <div class="weekdays" aria-hidden="true">
             {weekdays.map((weekday) => (
               <span>{weekday.slice(0, 1)}</span>
             ))}
           </div>
           <div class="days">
-            {Array.from({ length: month.leadingDays }, () => (
-              <span class="blank" aria-hidden="true" />
-            ))}
             {month.days.map((day) => (
               <time
-                class:list={["day", day.status?.replace(" ", "-")]}
+                class:list={[
+                  "day",
+                  day.status?.replace(" ", "-"),
+                ]}
                 datetime={day.date}
                 title={day.status
                   ? `${day.accessibleDate}: ${day.status}`
@@ -105,10 +108,17 @@ const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
       ))
     }
   </div>
+
+  <ul class="legend" aria-label="workout status legend">
+    <li><span class="key worked-out"></span>worked out</li>
+    <li><span class="key rest"></span>rest</li>
+    <li><span class="key skipped"></span>skipped</li>
+  </ul>
 </section>
 
 <style>
   section {
+    position: relative;
     height: 100%;
     margin: 0;
     padding: 0.875rem;
@@ -125,19 +135,29 @@ const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
   h2,
   h3,
+  p,
   ul {
     margin: 0;
   }
 
   h2,
-  h3 {
+  h3,
+  p {
     font-size: 1rem;
+  }
+
+  .period {
+    position: absolute;
+    top: 0.875rem;
+    right: 0.875rem;
+    font-weight: 400;
   }
 
   .legend {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
+    margin-top: 0.75rem;
     padding: 0;
     font-size: 0.875rem;
     list-style: none;
@@ -201,8 +221,7 @@ const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
     text-align: center;
   }
 
-  .day,
-  .blank {
+  .day {
     min-height: 2rem;
   }
 
