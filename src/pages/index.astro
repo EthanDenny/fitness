@@ -18,6 +18,7 @@ interface Nutrition {
 interface Workout {
   title: string;
   start_time: string;
+  exercises?: unknown;
 }
 
 interface Day {
@@ -92,6 +93,40 @@ const formatNumber = (value: number) =>
   Math.round(value).toLocaleString("en-CA");
 const formatWeight = (value: number) =>
   value.toLocaleString("en-CA", { maximumFractionDigits: 1 });
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+const liftedKilograms = (workout: Workout) => {
+  if (!Array.isArray(workout.exercises)) return 0;
+
+  return workout.exercises.reduce((exerciseTotal, exercise) => {
+    if (!isRecord(exercise) || !Array.isArray(exercise.sets)) {
+      return exerciseTotal;
+    }
+
+    return exerciseTotal + exercise.sets.reduce((setTotal, set) => {
+      if (
+        !isRecord(set) ||
+        typeof set.weight_kg !== "number" ||
+        !Number.isFinite(set.weight_kg) ||
+        typeof set.reps !== "number" ||
+        !Number.isFinite(set.reps)
+      ) {
+        return setTotal;
+      }
+
+      return setTotal + set.weight_kg * set.reps;
+    }, 0);
+  }, 0);
+};
+const formatLifted = (day: Day) => {
+  if (day.workouts.length === 0) return "—";
+
+  const kilograms = day.workouts.reduce(
+    (total, workout) => total + liftedKilograms(workout),
+    0,
+  );
+  return `${formatNumber(kilograms * 2.2046226218)} lbs`;
+};
 const previousDate = (date: string) => {
   const value = new Date(`${date}T00:00:00Z`);
   value.setUTCDate(value.getUTCDate() - 1);
@@ -195,6 +230,7 @@ const workoutDays = trackedDates.map((date) => {
                     <th class="column-weight" scope="col">weight</th>
                     <th class="column-calories" scope="col">calories</th>
                     <th class="column-workout" scope="col">workout</th>
+                    <th class="column-lifted" scope="col">lifted</th>
                     <th class="column-protein" scope="col">protein</th>
                     <th class="column-carbs" scope="col">carbs</th>
                     <th class="column-fat" scope="col">fat</th>
@@ -219,6 +255,7 @@ const workoutDays = trackedDates.map((date) => {
                           : "—"}
                       </td>
                       <td class="column-workout">{workoutLabel(day)}</td>
+                      <td class="column-lifted">{formatLifted(day)}</td>
                       <td class="column-protein">
                         {day.nutrition
                           ? `${formatNumber(day.nutrition.protein)} g`
@@ -278,6 +315,10 @@ const workoutDays = trackedDates.map((date) => {
                     <div>
                       <dt>workout</dt>
                       <dd>{workoutLabel(day)}</dd>
+                    </div>
+                    <div>
+                      <dt>lifted</dt>
+                      <dd>{formatLifted(day)}</dd>
                     </div>
                     <div>
                       <dt>protein</dt>
