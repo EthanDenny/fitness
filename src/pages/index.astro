@@ -149,12 +149,14 @@ const charts = [
     points: rollingAverage("calories"),
     unit: "kcal",
     decimals: 0,
+    target: 2000,
   },
   {
     title: "protein",
     points: rollingAverage("protein"),
     unit: "g",
     decimals: 0,
+    target: 150,
   },
 ];
 const workoutDays = trackedDates.map((date) => {
