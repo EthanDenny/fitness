@@ -92,7 +92,10 @@ const chronologicalDates = [...days.keys()].sort((a, b) => a.localeCompare(b));
 const formatNumber = (value: number) =>
   Math.round(value).toLocaleString("en-CA");
 const formatWeight = (value: number) =>
-  value.toLocaleString("en-CA", { maximumFractionDigits: 1 });
+  value.toLocaleString("en-CA", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 const liftedKilograms = (workout: Workout) => {
@@ -125,7 +128,8 @@ const formatLifted = (day: Day) => {
     (total, workout) => total + liftedKilograms(workout),
     0,
   );
-  return `${formatNumber(kilograms * 2.2046226218)} lbs`;
+  const pounds = formatNumber(kilograms * 2.2046226218).padStart(6, "\u00a0");
+  return `${pounds} lbs`;
 };
 const previousDate = (date: string) => {
   const value = new Date(`${date}T00:00:00Z`);
@@ -242,8 +246,11 @@ const workoutDays = trackedDates.map((date) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {entries.map((day) => (
-                    <tr>
+                  {entries.map((day, index) => (
+                    <tr
+                      data-older-entry={index >= 7 ? "" : undefined}
+                      hidden={index >= 7}
+                    >
                       <td class="column-date">
                         <time datetime={day.date}>{day.date}</time>
                       </td>
@@ -293,8 +300,11 @@ const workoutDays = trackedDates.map((date) => {
                 <span>calories</span>
                 <span></span>
               </div>
-              {entries.map((day) => (
-                <details>
+              {entries.map((day, index) => (
+                <details
+                  data-older-entry={index >= 7 ? "" : undefined}
+                  hidden={index >= 7}
+                >
                   <summary>
                     <span>
                       <span class="visually-hidden">date </span>
@@ -361,6 +371,17 @@ const workoutDays = trackedDates.map((date) => {
               ))}
             </div>
 
+            {entries.length > 7 && (
+              <button
+                class="history-toggle"
+                type="button"
+                data-history-toggle
+                aria-expanded="false"
+              >
+                show all
+              </button>
+            )}
+
             <section class="dashboard-grid" aria-label="fitness trends">
               {charts.map((chart) => (
                 <RollingAverageChart {...chart} />
@@ -379,6 +400,25 @@ const workoutDays = trackedDates.map((date) => {
         )
       }
     </main>
+
+    <script>
+      const toggle = document.querySelector<HTMLButtonElement>(
+        "[data-history-toggle]",
+      );
+      const olderEntries = document.querySelectorAll<HTMLElement>(
+        "[data-older-entry]",
+      );
+
+      toggle?.addEventListener("click", () => {
+        const isExpanded = toggle.getAttribute("aria-expanded") === "true";
+
+        olderEntries.forEach((entry) => {
+          entry.hidden = isExpanded;
+        });
+        toggle.setAttribute("aria-expanded", String(!isExpanded));
+        toggle.textContent = isExpanded ? "show all" : "show last 7 days";
+      });
+    </script>
   </body>
 </html>
 
@@ -390,6 +430,7 @@ const workoutDays = trackedDates.map((date) => {
   :global(html) {
     font-family: ui-monospace, "SFMono-Regular", "Cascadia Code", "Roboto Mono",
       Consolas, monospace;
+    font-variant-numeric: tabular-nums;
     color: #111;
     background: #fff;
     text-transform: lowercase;
@@ -446,6 +487,27 @@ const workoutDays = trackedDates.map((date) => {
     display: none;
   }
 
+  .history-toggle {
+    display: block;
+    margin: 0.75rem 0 0 auto;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid #bbb;
+    color: #111;
+    background: #fff;
+    font: inherit;
+    font-size: 0.875rem;
+    cursor: pointer;
+  }
+
+  .history-toggle:hover {
+    border-color: #111;
+  }
+
+  .history-toggle:focus-visible {
+    outline: 2px solid #111;
+    outline-offset: 2px;
+  }
+
   table {
     width: max-content;
     min-width: 100%;
@@ -458,6 +520,16 @@ const workoutDays = trackedDates.map((date) => {
   td {
     padding: 0.75rem 0.5rem;
     text-align: left;
+  }
+
+  .column-weight,
+  .column-calories,
+  .column-lifted,
+  .column-protein,
+  .column-carbs,
+  .column-fat,
+  .column-fiber {
+    text-align: right;
   }
 
   th {
@@ -519,6 +591,13 @@ const workoutDays = trackedDates.map((date) => {
     .mobile-head {
       border-bottom: 1px solid #bbb;
       font-weight: 700;
+    }
+
+    .mobile-head span:nth-child(2),
+    .mobile-head span:nth-child(3),
+    summary > span:nth-child(2),
+    summary > span:nth-child(3) {
+      text-align: right;
     }
 
     details {
