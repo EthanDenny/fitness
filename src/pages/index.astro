@@ -122,7 +122,7 @@ const liftedKilograms = (workout: Workout) => {
   }, 0);
 };
 const formatLifted = (day: Day) => {
-  if (day.workouts.length === 0) return "—";
+  if (day.workouts.length === 0) return "";
 
   const kilograms = day.workouts.reduce(
     (total, workout) => total + liftedKilograms(workout),
@@ -266,14 +266,7 @@ const workoutDays = trackedDates.map((date) => {
                           : "—"}
                       </td>
                       <td class="column-workout">{workoutLabel(day)}</td>
-                      <td
-                        class:list={[
-                          "column-lifted",
-                          { "is-empty": day.workouts.length === 0 },
-                        ]}
-                      >
-                        {formatLifted(day)}
-                      </td>
+                      <td class="column-lifted">{formatLifted(day)}</td>
                       <td class="column-protein">
                         {day.nutrition
                           ? `${formatNumber(day.nutrition.protein)} g`
@@ -339,14 +332,7 @@ const workoutDays = trackedDates.map((date) => {
                     </div>
                     <div>
                       <dt>lifted</dt>
-                      <dd
-                        class:list={[
-                          "lifted-value",
-                          { "is-empty": day.workouts.length === 0 },
-                        ]}
-                      >
-                        {formatLifted(day)}
-                      </dd>
+                      <dd>{formatLifted(day)}</dd>
                     </div>
                     <div>
                       <dt>protein</dt>
@@ -444,7 +430,6 @@ const workoutDays = trackedDates.map((date) => {
   :global(html) {
     font-family: ui-monospace, "SFMono-Regular", "Cascadia Code", "Roboto Mono",
       Consolas, monospace;
-    font-variant-numeric: tabular-nums;
     color: #111;
     background: #fff;
     text-transform: lowercase;
@@ -503,18 +488,21 @@ const workoutDays = trackedDates.map((date) => {
 
   .history-toggle {
     display: block;
-    margin: 0.75rem 0 0 auto;
-    padding: 0.4rem 0.6rem;
-    border: 1px solid #bbb;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    border: 0;
     color: #111;
-    background: #fff;
+    background: transparent;
     font: inherit;
     font-size: 0.875rem;
+    text-align: left;
     cursor: pointer;
   }
 
-  .history-toggle:hover {
-    border-color: #111;
+  .history-toggle:hover,
+  .history-toggle:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
   }
 
   .history-toggle:focus-visible {
@@ -534,21 +522,6 @@ const workoutDays = trackedDates.map((date) => {
   td {
     padding: 0.75rem 0.5rem;
     text-align: left;
-  }
-
-  .column-weight,
-  .column-calories,
-  .column-lifted,
-  .column-protein,
-  .column-carbs,
-  .column-fat,
-  .column-fiber {
-    text-align: right;
-  }
-
-  .column-lifted.is-empty,
-  .lifted-value.is-empty {
-    text-align: center;
   }
 
   th {
@@ -610,13 +583,6 @@ const workoutDays = trackedDates.map((date) => {
     .mobile-head {
       border-bottom: 1px solid #bbb;
       font-weight: 700;
-    }
-
-    .mobile-head span:nth-child(2),
-    .mobile-head span:nth-child(3),
-    summary > span:nth-child(2),
-    summary > span:nth-child(3) {
-      text-align: right;
     }
 
     details {
