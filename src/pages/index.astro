@@ -266,7 +266,14 @@ const workoutDays = trackedDates.map((date) => {
                           : "—"}
                       </td>
                       <td class="column-workout">{workoutLabel(day)}</td>
-                      <td class="column-lifted">{formatLifted(day)}</td>
+                      <td
+                        class:list={[
+                          "column-lifted",
+                          { "is-empty": day.workouts.length === 0 },
+                        ]}
+                      >
+                        {formatLifted(day)}
+                      </td>
                       <td class="column-protein">
                         {day.nutrition
                           ? `${formatNumber(day.nutrition.protein)} g`
@@ -332,7 +339,14 @@ const workoutDays = trackedDates.map((date) => {
                     </div>
                     <div>
                       <dt>lifted</dt>
-                      <dd>{formatLifted(day)}</dd>
+                      <dd
+                        class:list={[
+                          "lifted-value",
+                          { "is-empty": day.workouts.length === 0 },
+                        ]}
+                      >
+                        {formatLifted(day)}
+                      </dd>
                     </div>
                     <div>
                       <dt>protein</dt>
@@ -530,6 +544,11 @@ const workoutDays = trackedDates.map((date) => {
   .column-fat,
   .column-fiber {
     text-align: right;
+  }
+
+  .column-lifted.is-empty,
+  .lifted-value.is-empty {
+    text-align: center;
   }
 
   th {
