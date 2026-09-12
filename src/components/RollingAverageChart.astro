@@ -2,6 +2,7 @@
 interface Point {
   date: string;
   value: number;
+  complete: boolean;
 }
 
 interface Props {
@@ -35,12 +36,13 @@ const xPosition = (index: number) =>
 const yPosition = (value: number) =>
   padding.top + ((upperBound - value) / valueRange) * chartHeight;
 const targetPosition = target === undefined ? undefined : yPosition(target);
-const path = points
-  .map(
-    ({ value }, index) =>
-      `${index === 0 ? "M" : "L"} ${xPosition(index).toFixed(2)} ${yPosition(value).toFixed(2)}`,
-  )
-  .join(" ");
+const segments = points.slice(1).map((point, index) => {
+  const previous = points[index];
+  return {
+    path: `M ${xPosition(index).toFixed(2)} ${yPosition(previous.value).toFixed(2)} L ${xPosition(index + 1).toFixed(2)} ${yPosition(point.value).toFixed(2)}`,
+    complete: previous.complete && point.complete,
+  };
+});
 const ticks = [upperBound, (upperBound + lowerBound) / 2, lowerBound];
 const latest = points.at(-1);
 const formatValue = (value: number) =>
@@ -91,7 +93,9 @@ const formatDate = (date: string) => date.slice(5);
           />
         )}
 
-        <path d={path} />
+        {segments.map((segment) => (
+          <path class={segment.complete ? undefined : "incomplete"} d={segment.path} />
+        ))}
         {points.map((point, index) => (
           <circle cx={xPosition(index)} cy={yPosition(point.value)} r="3" />
         ))}
@@ -168,6 +172,10 @@ const formatDate = (date: string) => date.slice(5);
     stroke-linejoin: round;
     stroke-width: 2;
     vector-effect: non-scaling-stroke;
+  }
+
+  path.incomplete {
+    stroke-dasharray: 6 5;
   }
 
   circle {

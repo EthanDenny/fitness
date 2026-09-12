@@ -169,7 +169,11 @@ const rollingAverage = (metric: NutritionMetric) =>
       );
 
     return values.length
-      ? [{ date, value: values.reduce((sum, value) => sum + value, 0) / values.length }]
+      ? [{
+          date,
+          value: values.reduce((sum, value) => sum + value, 0) / values.length,
+          complete: values.length === 7,
+        }]
       : [];
   });
 const charts = [
