@@ -1,0 +1,29 @@
+src/pages/index.astro
+  s_dd7bb5d1a21441::t_00343d2a564a4a 95-98,131-132,433,525-534,596-600
+  s_dd7bb5d1a21441::t_6b2228dd0d7cca 249-253,303-307,374-384,403-421,490-509
+  s_0ee9fa50683d57::t_ee47f399ba5207 510,601-602
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7f72acb2233b31e6d32aeb891797805baf6d897f",
+  "prompts": {},
+  "sessions": {
+    "s_0ee9fa50683d57": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a09651-cf05-7771-90ec-f5562fdef2f6",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Ethan Denny <ethandenny@protonmail.com>"
+    },
+    "s_dd7bb5d1a21441": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a07491-0022-7200-b16e-12ebdd21b411",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Ethan Denny <ethandenny@protonmail.com>"
+    }
+  }
+}
