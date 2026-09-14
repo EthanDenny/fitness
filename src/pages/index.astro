@@ -6,11 +6,11 @@ import WorkoutCalendar from "../components/WorkoutCalendar.astro";
 
 interface Nutrition {
   date: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  fiber: number;
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  fiber?: number;
   weight?: number;
   weightUnit?: string;
 }
@@ -44,11 +44,11 @@ const nutrition: Nutrition[] = existsSync(nutritionPath)
           line.split(",");
         return {
           date,
-          calories: Number(calories),
-          protein: Number(protein),
-          carbs: Number(carbs),
-          fat: Number(fat),
-          fiber: Number(fiber),
+          calories: calories ? Number(calories) : undefined,
+          protein: protein ? Number(protein) : undefined,
+          carbs: carbs ? Number(carbs) : undefined,
+          fat: fat ? Number(fat) : undefined,
+          fiber: fiber ? Number(fiber) : undefined,
           weight: weight ? Number(weight) : undefined,
           weightUnit: weightUnit || undefined,
         };
@@ -261,29 +261,29 @@ const workoutDays = trackedDates.map((date) => {
                           : "—"}
                       </td>
                       <td class="column-calories">
-                        {day.nutrition
+                        {day.nutrition?.calories !== undefined
                           ? `${formatNumber(day.nutrition.calories)} kcal`
                           : "—"}
                       </td>
                       <td class="column-workout">{workoutLabel(day)}</td>
                       <td class="column-lifted">{formatLifted(day)}</td>
                       <td class="column-protein">
-                        {day.nutrition
+                        {day.nutrition?.protein !== undefined
                           ? `${formatNumber(day.nutrition.protein)} g`
                           : "—"}
                       </td>
                       <td class="column-carbs">
-                        {day.nutrition
+                        {day.nutrition?.carbs !== undefined
                           ? `${formatNumber(day.nutrition.carbs)} g`
                           : "—"}
                       </td>
                       <td class="column-fat">
-                        {day.nutrition
+                        {day.nutrition?.fat !== undefined
                           ? `${formatNumber(day.nutrition.fat)} g`
                           : "—"}
                       </td>
                       <td class="column-fiber">
-                        {day.nutrition
+                        {day.nutrition?.fiber !== undefined
                           ? `${formatNumber(day.nutrition.fiber)} g`
                           : "—"}
                       </td>
@@ -319,7 +319,7 @@ const workoutDays = trackedDates.map((date) => {
                     </span>
                     <span>
                       <span class="visually-hidden">calories </span>
-                      {day.nutrition
+                      {day.nutrition?.calories !== undefined
                         ? `${formatNumber(day.nutrition.calories)} kcal`
                         : "—"}
                     </span>
@@ -337,7 +337,7 @@ const workoutDays = trackedDates.map((date) => {
                     <div>
                       <dt>protein</dt>
                       <dd>
-                        {day.nutrition
+                        {day.nutrition?.protein !== undefined
                           ? `${formatNumber(day.nutrition.protein)} g`
                           : "—"}
                       </dd>
@@ -345,7 +345,7 @@ const workoutDays = trackedDates.map((date) => {
                     <div>
                       <dt>carbs</dt>
                       <dd>
-                        {day.nutrition
+                        {day.nutrition?.carbs !== undefined
                           ? `${formatNumber(day.nutrition.carbs)} g`
                           : "—"}
                       </dd>
@@ -353,7 +353,7 @@ const workoutDays = trackedDates.map((date) => {
                     <div>
                       <dt>fat</dt>
                       <dd>
-                        {day.nutrition
+                        {day.nutrition?.fat !== undefined
                           ? `${formatNumber(day.nutrition.fat)} g`
                           : "—"}
                       </dd>
@@ -361,7 +361,7 @@ const workoutDays = trackedDates.map((date) => {
                     <div>
                       <dt>fiber</dt>
                       <dd>
-                        {day.nutrition
+                        {day.nutrition?.fiber !== undefined
                           ? `${formatNumber(day.nutrition.fiber)} g`
                           : "—"}
                       </dd>
