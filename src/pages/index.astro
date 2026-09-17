@@ -560,6 +560,14 @@ const workoutDays = trackedDates.map((date) => {
     text-overflow: ellipsis;
   }
 
+  td.column-protein,
+  td.column-carbs,
+  td.column-fat,
+  td.column-fiber {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
   .empty {
     padding: 2rem 0;
     line-height: 1.6;
