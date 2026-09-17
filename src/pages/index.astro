@@ -128,6 +128,8 @@ const formatLifted = (day: Day) => {
     (total, workout) => total + liftedKilograms(workout),
     0,
   );
+  if (kilograms === 0) return "";
+
   const pounds = formatNumber(kilograms * 2.2046226218).padStart(6, "\u00a0");
   return `${pounds} lbs`;
 };
@@ -160,6 +162,13 @@ const dateRange = (start: string, end: string) => {
 const startDate = chronologicalDates[0] ?? "";
 const endDate = chronologicalDates.at(-1) ?? "";
 const trackedDates = startDate && endDate ? dateRange(startDate, endDate) : [];
+const actualValues = (metric: NutritionMetric) =>
+  nutrition.flatMap((entry) => {
+    const value = entry[metric];
+    return typeof value === "number" && Number.isFinite(value)
+      ? [{ date: entry.date, value }]
+      : [];
+  });
 const rollingAverage = (metric: NutritionMetric) =>
   trackedDates.flatMap((date) => {
     const windowStart = toDate(date);
@@ -172,31 +181,36 @@ const rollingAverage = (metric: NutritionMetric) =>
         typeof value === "number" && Number.isFinite(value),
       );
 
-    return values.length
+    return values.length === 7
       ? [{
           date,
           value: values.reduce((sum, value) => sum + value, 0) / values.length,
-          complete: values.length === 7,
         }]
       : [];
   });
 const charts = [
   {
     title: "weight",
-    points: rollingAverage("weight"),
+    dates: trackedDates,
+    actualPoints: actualValues("weight"),
+    averagePoints: rollingAverage("weight"),
     unit: nutrition.findLast((entry) => entry.weightUnit)?.weightUnit ?? "",
     decimals: 1,
   },
   {
     title: "calories",
-    points: rollingAverage("calories"),
+    dates: trackedDates,
+    actualPoints: actualValues("calories"),
+    averagePoints: rollingAverage("calories"),
     unit: "kcal",
     decimals: 0,
     target: 2000,
   },
   {
     title: "protein",
-    points: rollingAverage("protein"),
+    dates: trackedDates,
+    actualPoints: actualValues("protein"),
+    averagePoints: rollingAverage("protein"),
     unit: "g",
     decimals: 0,
     target: 150,
