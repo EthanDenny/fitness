@@ -1,0 +1,27 @@
+src/components/RollingAverageChart.astro
+  s_dd7bb5d1a21441::t_ad8d227c0295eb 184
+  s_dd7bb5d1a21441::t_092fe3ac12e403 82
+  s_dd7bb5d1a21441::t_a748bab201394d 183
+  s_dd7bb5d1a21441::t_58b93f014ead9e 39-49,66-70
+  s_dd7bb5d1a21441::t_ed0bfc354f60e0 9-11,17-25,32-33,51-53,55-56,59-65,71,83-85,89,93,112-113,115-116,120,123,149,171-172,181
+  s_dd7bb5d1a21441::t_f1258af366ee77 182
+src/pages/index.astro
+  s_dd7bb5d1a21441::t_ed0bfc354f60e0 165-171,184,194-196,202-204,211-213
+  s_dd7bb5d1a21441::t_362ed89a0a1207 131-132
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "8507ad3e90067800f1bd77636a1742e9a070fac1",
+  "prompts": {},
+  "sessions": {
+    "s_dd7bb5d1a21441": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a07491-0022-7200-b16e-12ebdd21b411",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Ethan Denny <ethandenny@protonmail.com>"
+    }
+  }
+}
