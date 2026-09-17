@@ -1,0 +1,237 @@
+<div class="sticker-layer" aria-hidden="true">
+  <canvas data-sticker-canvas></canvas>
+</div>
+
+<script>
+  const canvas = document.querySelector<HTMLCanvasElement>(
+    "[data-sticker-canvas]",
+  );
+
+  if (canvas) {
+    const context = canvas.getContext("2d");
+    const pointer = { x: 0, y: 0 };
+    let animationFrame = 0;
+
+    const sticker = (
+      x: number,
+      y: number,
+      size: number,
+      rotation: number,
+      draw: (size: number) => void,
+    ) => {
+      if (!context) return;
+      context.save();
+      context.translate(x + pointer.x, y + pointer.y);
+      context.rotate(rotation);
+      context.shadowColor = "rgba(118, 47, 76, 0.16)";
+      context.shadowBlur = 12;
+      context.shadowOffsetY = 5;
+      context.lineJoin = "round";
+      context.lineCap = "round";
+      draw(size);
+      context.restore();
+    };
+
+    const flower = (size: number, petals: string, center: string) => {
+      if (!context) return;
+      const petalSize = size * 0.34;
+      for (let index = 0; index < 6; index += 1) {
+        const angle = (Math.PI * 2 * index) / 6;
+        context.save();
+        context.rotate(angle);
+        context.beginPath();
+        context.ellipse(0, -size * 0.27, petalSize, size * 0.25, 0, 0, Math.PI * 2);
+        context.fillStyle = petals;
+        context.strokeStyle = "#fffafd";
+        context.lineWidth = 6;
+        context.stroke();
+        context.fill();
+        context.restore();
+      }
+      context.beginPath();
+      context.arc(0, 0, size * 0.2, 0, Math.PI * 2);
+      context.fillStyle = center;
+      context.strokeStyle = "#fffafd";
+      context.lineWidth = 4;
+      context.stroke();
+      context.fill();
+    };
+
+    const heart = (size: number, color: string) => {
+      if (!context) return;
+      context.beginPath();
+      context.moveTo(0, size * 0.34);
+      context.bezierCurveTo(-size * 0.56, 0, -size * 0.48, -size * 0.42, -size * 0.2, -size * 0.42);
+      context.bezierCurveTo(0, -size * 0.42, 0, -size * 0.18, 0, -size * 0.12);
+      context.bezierCurveTo(0, -size * 0.18, 0, -size * 0.42, size * 0.2, -size * 0.42);
+      context.bezierCurveTo(size * 0.48, -size * 0.42, size * 0.56, 0, 0, size * 0.34);
+      context.fillStyle = color;
+      context.strokeStyle = "#fffafd";
+      context.lineWidth = 7;
+      context.stroke();
+      context.fill();
+    };
+
+    const bow = (size: number, color: string) => {
+      if (!context) return;
+      const loop = (direction: number) => {
+        context.beginPath();
+        context.moveTo(direction * size * 0.05, 0);
+        context.bezierCurveTo(
+          direction * size * 0.26,
+          -size * 0.42,
+          direction * size * 0.62,
+          -size * 0.3,
+          direction * size * 0.5,
+          size * 0.08,
+        );
+        context.bezierCurveTo(
+          direction * size * 0.42,
+          size * 0.28,
+          direction * size * 0.16,
+          size * 0.18,
+          direction * size * 0.05,
+          0,
+        );
+        context.fillStyle = color;
+        context.strokeStyle = "#fffafd";
+        context.lineWidth = 6;
+        context.stroke();
+        context.fill();
+      };
+
+      loop(-1);
+      loop(1);
+      for (const direction of [-1, 1]) {
+        context.beginPath();
+        context.moveTo(direction * size * 0.08, size * 0.08);
+        context.lineTo(direction * size * 0.38, size * 0.55);
+        context.lineTo(direction * size * 0.08, size * 0.42);
+        context.closePath();
+        context.fillStyle = color;
+        context.strokeStyle = "#fffafd";
+        context.lineWidth = 5;
+        context.stroke();
+        context.fill();
+      }
+      context.beginPath();
+      context.arc(0, 0, size * 0.13, 0, Math.PI * 2);
+      context.fillStyle = "#f7b6cd";
+      context.strokeStyle = "#fffafd";
+      context.lineWidth = 4;
+      context.stroke();
+      context.fill();
+    };
+
+    const star = (size: number, color: string) => {
+      if (!context) return;
+      context.beginPath();
+      for (let index = 0; index < 8; index += 1) {
+        const angle = -Math.PI / 2 + (Math.PI * index) / 4;
+        const radius = index % 2 === 0 ? size * 0.48 : size * 0.12;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        if (index === 0) context.moveTo(x, y);
+        else context.lineTo(x, y);
+      }
+      context.closePath();
+      context.fillStyle = color;
+      context.strokeStyle = "#fffafd";
+      context.lineWidth = 5;
+      context.stroke();
+      context.fill();
+    };
+
+    const draw = () => {
+      if (!context) return;
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      context.clearRect(0, 0, width, height);
+
+      const compact = width < 720;
+      const scale = compact ? 0.68 : 1;
+      const decorations = compact
+        ? [
+            ["flower", 0.06, 0.11, 43, -0.18],
+            ["heart", 0.92, 0.18, 34, 0.2],
+            ["star", 0.08, 0.72, 30, 0.08],
+            ["bow", 0.89, 0.84, 48, -0.12],
+          ] as const
+        : [
+            ["flower", 0.055, 0.13, 62, -0.18],
+            ["heart", 0.94, 0.16, 48, 0.2],
+            ["bow", 0.075, 0.74, 70, -0.12],
+            ["flower-alt", 0.93, 0.72, 54, 0.15],
+            ["star", 0.12, 0.43, 38, 0.08],
+            ["star", 0.9, 0.44, 30, 0.28],
+          ] as const;
+
+      for (let index = 0; index < 28; index += 1) {
+        const x = ((Math.sin(index * 91.7) + 1) / 2) * width;
+        const y = ((Math.sin(index * 47.3 + 2) + 1) / 2) * height;
+        context.beginPath();
+        context.arc(x, y, (index % 3) + 1.5, 0, Math.PI * 2);
+        context.fillStyle = index % 2 ? "rgba(219, 125, 160, 0.32)" : "rgba(240, 190, 98, 0.38)";
+        context.fill();
+      }
+
+      decorations.forEach(([kind, x, y, size, rotation], index) => {
+        sticker(
+          x * width,
+          y * height,
+          size * scale,
+          rotation,
+          (stickerSize) => {
+            if (kind === "flower") flower(stickerSize, "#f4a9c5", "#f4cf71");
+            if (kind === "flower-alt") flower(stickerSize, "#cdbce8", "#f4cf71");
+            if (kind === "heart") heart(stickerSize, "#ef8eb4");
+            if (kind === "bow") bow(stickerSize, "#d8b8ea");
+            if (kind === "star") star(stickerSize, index % 2 ? "#f5c96d" : "#ef9fbe");
+          },
+        );
+      });
+    };
+
+    const scheduleDraw = () => {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = requestAnimationFrame(draw);
+    };
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    window.addEventListener("resize", scheduleDraw, { passive: true });
+    if (!reducedMotion.matches) {
+      window.addEventListener(
+        "pointermove",
+        (event) => {
+          pointer.x = (event.clientX / window.innerWidth - 0.5) * 5;
+          pointer.y = (event.clientY / window.innerHeight - 0.5) * 5;
+          scheduleDraw();
+        },
+        { passive: true },
+      );
+    }
+    draw();
+  }
+</script>
+
+<style>
+  .sticker-layer {
+    position: fixed;
+    z-index: 0;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+</style>

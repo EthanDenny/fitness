@@ -63,6 +63,10 @@ const segments = (points: Point[]) =>
   });
 const actualSegments = segments(actualPoints);
 const averageSegments = segments(averagePoints);
+const dogPath = averagePoints.map(({ date, value }) => ({
+  x: xPosition(date),
+  y: yPosition(value),
+}));
 const ticks = [
   upperBound,
   target ?? (upperBound + lowerBound) / 2,
@@ -87,91 +91,420 @@ const formatDate = (date: string) => date.slice(5);
 
   {
     actualPoints.length ? (
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        role="img"
-        aria-label={`${title} daily values and 7-day rolling average`}
-      >
-        {ticks.map((tick, index) => {
-          const y = padding.top + (index / (ticks.length - 1)) * chartHeight;
-          return (
-            <g>
-              <line
-                x1={padding.left}
-                x2={width - padding.right}
-                y1={y}
-                y2={y}
-              />
-              <text x={padding.left - 8} y={y + 4} text-anchor="end">
-                {formatValue(tick)}
-              </text>
-            </g>
-          );
-        })}
+      <div class="chart-area">
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          role="img"
+          aria-label={`${title} daily values and 7-day rolling average`}
+        >
+          {ticks.map((tick, index) => {
+            const y = padding.top + (index / (ticks.length - 1)) * chartHeight;
+            return (
+              <g>
+                <line
+                  x1={padding.left}
+                  x2={width - padding.right}
+                  y1={y}
+                  y2={y}
+                />
+                <text x={padding.left - 8} y={y + 4} text-anchor="end">
+                  {formatValue(tick)}
+                </text>
+              </g>
+            );
+          })}
 
-        {actualSegments.map((path) => (
-          <path class="actual" d={path} />
-        ))}
-        {averageSegments.map((path) => (
-          <path class="average" d={path} />
-        ))}
+          {actualSegments.map((path) => (
+            <path class="actual" d={path} />
+          ))}
+          {averageSegments.map((path) => (
+            <path class="average" d={path} />
+          ))}
 
-        <text x={padding.left} y={height - 5} text-anchor="start">
-          {formatDate(dates[0])}
-        </text>
-        <text x={width - padding.right} y={height - 5} text-anchor="end">
-          {formatDate(dates.at(-1)!)}
-        </text>
-      </svg>
+          <text x={padding.left} y={height - 5} text-anchor="start">
+            {formatDate(dates[0])}
+          </text>
+          <text x={width - padding.right} y={height - 5} text-anchor="end">
+            {formatDate(dates.at(-1)!)}
+          </text>
+        </svg>
+        {title === "weight" && dogPath.length > 1 && (
+          <canvas
+            class="weight-dog"
+            width={width * 2}
+            height={height * 2}
+            data-weight-dog
+            data-view-width={width}
+            data-view-height={height}
+            data-dog-path={JSON.stringify(dogPath)}
+            aria-hidden="true"
+          ></canvas>
+        )}
+      </div>
     ) : (
       <p class="empty">no data</p>
     )
   }
 </figure>
 
+<script>
+  interface DogPoint {
+    x: number;
+    y: number;
+  }
+
+  const dogCanvases = document.querySelectorAll<HTMLCanvasElement>(
+    "[data-weight-dog]",
+  );
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  dogCanvases.forEach((canvas) => {
+    const context = canvas.getContext("2d");
+    const viewWidth = Number(canvas.dataset.viewWidth);
+    const viewHeight = Number(canvas.dataset.viewHeight);
+    const points = JSON.parse(canvas.dataset.dogPath ?? "[]") as DogPoint[];
+    if (!context || !viewWidth || !viewHeight || points.length < 2) return;
+
+    const segments = points.slice(1).map((point, index) => {
+      const previous = points[index];
+      const length = Math.hypot(point.x - previous.x, point.y - previous.y);
+      return { start: previous, end: point, length };
+    });
+    const totalLength = segments.reduce((sum, segment) => sum + segment.length, 0);
+    const scale = canvas.width / viewWidth;
+    context.setTransform(scale, 0, 0, scale, 0, 0);
+
+    const positionAt = (pathDistance: number) => {
+      let distance = pathDistance;
+      for (const segment of segments) {
+        if (distance <= segment.length) {
+          const amount = segment.length ? distance / segment.length : 0;
+          return {
+            x: segment.start.x + (segment.end.x - segment.start.x) * amount,
+            y: segment.start.y + (segment.end.y - segment.start.y) * amount,
+            angle: Math.atan2(
+              segment.end.y - segment.start.y,
+              segment.end.x - segment.start.x,
+            ),
+          };
+        }
+        distance -= segment.length;
+      }
+
+      const last = segments.at(-1)!;
+      return {
+        x: last.end.x,
+        y: last.end.y,
+        angle: Math.atan2(last.end.y - last.start.y, last.end.x - last.start.x),
+      };
+    };
+
+    const state = {
+      distance: totalLength * 0.18,
+      direction: 1,
+      speed: 11,
+      targetSpeed: 11,
+      lastTime: 0,
+      stepPhase: 0,
+      stopUntil: 0,
+      nextDecision: performance.now() + 2500 + Math.random() * 3000,
+      nextSpeedChange: performance.now() + 1400 + Math.random() * 1800,
+      jumpStarted: -Infinity,
+      position: positionAt(totalLength * 0.18),
+    };
+    const mouse = { x: 0, y: 0, active: false };
+    const chartArea = canvas.closest<HTMLElement>(".chart-area");
+
+    const mouseOnChart = () => {
+      if (!mouse.active) return undefined;
+      const rect = canvas.getBoundingClientRect();
+      const margin = 45;
+      if (
+        mouse.x < rect.left - margin ||
+        mouse.x > rect.right + margin ||
+        mouse.y < rect.top - margin ||
+        mouse.y > rect.bottom + margin
+      ) {
+        return undefined;
+      }
+
+      return {
+        x: ((mouse.x - rect.left) / rect.width) * viewWidth,
+        y: ((mouse.y - rect.top) / rect.height) * viewHeight,
+      };
+    };
+
+    window.addEventListener(
+      "pointermove",
+      (event) => {
+        mouse.x = event.clientX;
+        mouse.y = event.clientY;
+        mouse.active = true;
+      },
+      { passive: true },
+    );
+    document.documentElement.addEventListener("pointerleave", () => {
+      mouse.active = false;
+    });
+    window.addEventListener(
+      "pointerdown",
+      (event) => {
+        if (reducedMotion.matches) return;
+        const rect = canvas.getBoundingClientRect();
+        const point = {
+          x: ((event.clientX - rect.left) / rect.width) * viewWidth,
+          y: ((event.clientY - rect.top) / rect.height) * viewHeight,
+        };
+        if (Math.hypot(point.x - state.position.x, point.y - state.position.y) < 16) {
+          state.jumpStarted = performance.now();
+          state.stopUntil = state.jumpStarted + 720;
+        }
+      },
+      { passive: true },
+    );
+
+    const drawDog = (
+      phase: number,
+      walking: boolean,
+      lookX: number,
+      lookY: number,
+      jumpHeight: number,
+    ) => {
+      const step = walking ? Math.sin(phase) : 0;
+      const bounce = walking ? Math.abs(Math.sin(phase)) * 0.45 : 0;
+      context.save();
+      context.translate(0, -bounce - jumpHeight);
+
+      context.strokeStyle = "#6f392e";
+      context.lineWidth = 1.6;
+      context.beginPath();
+      context.moveTo(-6, -6);
+      context.quadraticCurveTo(-10, -10 - step * 0.8, -11, -7.5);
+      context.stroke();
+
+      context.strokeStyle = "#743b2f";
+      context.lineWidth = 1.6;
+      for (const [x, offset] of [[-4, step], [3, -step]] as const) {
+        context.beginPath();
+        context.moveTo(x, -4);
+        context.lineTo(x + offset * 0.8, -0.8);
+        context.lineTo(x + offset * 1.15 + 0.8, -0.8);
+        context.stroke();
+      }
+
+      context.beginPath();
+      context.roundRect(-7.5, -9.5, 13.5, 6, 3);
+      context.fillStyle = "#a85f43";
+      context.fill();
+
+      context.beginPath();
+      context.arc(7.2, -9, 3.5, 0, Math.PI * 2);
+      context.fillStyle = "#b86e4e";
+      context.fill();
+
+      context.beginPath();
+      context.ellipse(9.8, -8.1, 2.7, 1.6, 0.12, 0, Math.PI * 2);
+      context.fillStyle = "#c67a58";
+      context.fill();
+
+      context.beginPath();
+      context.ellipse(5.8, -6.8, 1.7, 3.1, -0.35, 0, Math.PI * 2);
+      context.fillStyle = "#6f392e";
+      context.fill();
+
+      context.strokeStyle = "#e994b2";
+      context.lineWidth = 1.2;
+      context.beginPath();
+      context.moveTo(5, -11);
+      context.lineTo(5.1, -7.2);
+      context.stroke();
+
+      context.beginPath();
+      context.arc(8.1, -10, 0.92, 0, Math.PI * 2);
+      context.fillStyle = "#fff8f4";
+      context.fill();
+
+      context.beginPath();
+      context.arc(8.1 + lookX * 0.36, -10 + lookY * 0.36, 0.5, 0, Math.PI * 2);
+      context.fillStyle = "#2c1720";
+      context.fill();
+
+      context.beginPath();
+      context.arc(11.8, -8.2, 0.55, 0, Math.PI * 2);
+      context.fillStyle = "#2c1720";
+      context.fill();
+
+      context.restore();
+    };
+
+    const render = (time: number) => {
+      const elapsed = state.lastTime ? Math.min((time - state.lastTime) / 1000, 0.05) : 0;
+      state.lastTime = time;
+
+      if (!reducedMotion.matches && time >= state.nextDecision) {
+        const decision = Math.random();
+        if (decision < 0.45) state.stopUntil = time + 550 + Math.random() * 1100;
+        else if (decision < 0.75) state.direction *= -1;
+        state.nextDecision = time + 2600 + Math.random() * 4200;
+      }
+
+      if (!reducedMotion.matches && time >= state.nextSpeedChange) {
+        state.targetSpeed = 8.5 + Math.random() * 7;
+        state.nextSpeedChange = time + 1600 + Math.random() * 2600;
+      }
+
+      state.speed += (state.targetSpeed - state.speed) * Math.min(elapsed * 1.8, 1);
+      const nearbyMouse = mouseOnChart();
+      const mouseDistance = nearbyMouse
+        ? Math.hypot(
+            nearbyMouse.x - state.position.x,
+            nearbyMouse.y - state.position.y,
+          )
+        : Infinity;
+      const watching = mouseDistance < 34;
+      const walking =
+        !reducedMotion.matches && !watching && time >= state.stopUntil;
+
+      if (walking) {
+        state.distance += state.direction * state.speed * elapsed;
+        state.stepPhase += elapsed * (8 + state.speed * 0.32);
+        if (state.distance >= totalLength) {
+          state.distance = totalLength;
+          state.direction = -1;
+          state.stopUntil = time + 350 + Math.random() * 500;
+        } else if (state.distance <= 0) {
+          state.distance = 0;
+          state.direction = 1;
+          state.stopUntil = time + 350 + Math.random() * 500;
+        }
+      }
+
+      state.position = positionAt(state.distance);
+      chartArea?.classList.toggle("dog-near", watching);
+
+      let lookX = 0;
+      let lookY = 0;
+      if (watching && nearbyMouse) {
+        const deltaX = nearbyMouse.x - state.position.x;
+        const deltaY = nearbyMouse.y - state.position.y;
+        const cosine = Math.cos(state.position.angle);
+        const sine = Math.sin(state.position.angle);
+        const localX = (cosine * deltaX + sine * deltaY) * state.direction;
+        const localY = -sine * deltaX + cosine * deltaY;
+        const magnitude = Math.hypot(localX, localY) || 1;
+        lookX = localX / magnitude;
+        lookY = localY / magnitude;
+      }
+
+      const jumpProgress = (time - state.jumpStarted) / 680;
+      const jumpHeight =
+        jumpProgress >= 0 && jumpProgress <= 1
+          ? Math.sin(jumpProgress * Math.PI) * 7
+          : 0;
+
+      context.clearRect(0, 0, viewWidth, viewHeight);
+      context.save();
+      context.translate(state.position.x, state.position.y);
+      context.rotate(state.position.angle);
+      if (state.direction < 0) context.scale(-1, 1);
+      drawDog(state.stepPhase, walking, lookX, lookY, jumpHeight);
+      context.restore();
+
+      requestAnimationFrame(render);
+    };
+
+    requestAnimationFrame(render);
+  });
+</script>
+
 <style>
   figure {
+    position: relative;
     height: 100%;
     min-width: 0;
     margin: 0;
-    padding: 0.875rem;
-    border: 1px solid #bbb;
+    padding: 1rem;
+    overflow: hidden;
+    border: 2px solid #e5a8bf;
+    border-radius: 1.5rem;
+    background: rgba(255, 250, 253, 0.95);
+    box-shadow: 0 7px 0 #edb8cb, 0 16px 32px rgba(112, 46, 74, 0.1);
+  }
+
+  figure::after {
+    position: absolute;
+    top: -1.9rem;
+    right: -1.4rem;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    background: #f9dce7;
+    content: "";
   }
 
   figcaption {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: baseline;
     justify-content: space-between;
     gap: 1rem;
-    font-size: 1rem;
+    color: #7f3554;
+    font-size: 0.9rem;
   }
 
   figcaption .title {
-    font-weight: 700;
+    font-family: "Iowan Old Style", "Palatino Linotype", Baskerville, Georgia,
+      serif;
+    font-size: 1.35rem;
+    font-style: italic;
+    font-weight: 600;
   }
 
   figcaption strong {
+    padding: 0.3rem 0.55rem;
+    border: 1px solid #e5a8bf;
+    border-radius: 999px;
+    background: #fbe4ec;
     font-weight: 400;
     white-space: nowrap;
   }
 
-  svg {
-    display: block;
-    width: 100%;
-    height: auto;
+  .chart-area {
+    position: relative;
+    aspect-ratio: 12 / 7;
     margin-top: 0.5rem;
+  }
+
+  .chart-area.dog-near {
+    cursor: pointer;
+  }
+
+  svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    inset: 0;
     overflow: visible;
   }
 
+  .weight-dog {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    inset: 0;
+    pointer-events: none;
+  }
+
   line {
-    stroke: #ddd;
+    stroke: #efd2dd;
     stroke-width: 1;
   }
 
   path.actual,
   path.average {
     fill: none;
-    stroke: #111;
+    stroke: #843b59;
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 2;
@@ -179,13 +512,13 @@ const formatDate = (date: string) => date.slice(5);
   }
 
   path.actual {
-    stroke: #777;
+    stroke: #bd718e;
     stroke-dasharray: 1 6;
     stroke-width: 1;
   }
 
   text {
-    fill: #555;
+    fill: #92556d;
     font-family: inherit;
     font-size: 0.75rem;
   }
@@ -193,7 +526,7 @@ const formatDate = (date: string) => date.slice(5);
   .empty {
     margin: 0;
     padding: 3rem 0;
-    color: #555;
+    color: #92556d;
     text-align: center;
   }
 </style>

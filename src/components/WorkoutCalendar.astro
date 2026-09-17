@@ -121,8 +121,23 @@ const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
     position: relative;
     height: 100%;
     margin: 0;
-    padding: 0.875rem;
-    border: 1px solid #bbb;
+    padding: 1rem;
+    overflow: hidden;
+    border: 2px solid #e5a8bf;
+    border-radius: 1.5rem;
+    background: rgba(255, 250, 253, 0.95);
+    box-shadow: 0 7px 0 #edb8cb, 0 16px 32px rgba(112, 46, 74, 0.1);
+  }
+
+  section::after {
+    position: absolute;
+    right: -1.4rem;
+    bottom: -1.9rem;
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    background: #e5d8f2;
+    content: "";
   }
 
   header {
@@ -146,20 +161,41 @@ const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
     font-size: 1rem;
   }
 
+  h2,
+  h3 {
+    color: #7f3554;
+    font-family: "Iowan Old Style", "Palatino Linotype", Baskerville, Georgia,
+      serif;
+    font-style: italic;
+  }
+
+  h2 {
+    font-size: 1.35rem;
+  }
+
   .period {
     position: absolute;
     top: 0.875rem;
     right: 0.875rem;
+    padding: 0.3rem 0.55rem;
+    border: 1px solid #e5a8bf;
+    border-radius: 999px;
+    color: #7f3554;
+    background: #fbe4ec;
+    font-size: 0.9rem;
     font-weight: 400;
   }
 
   .legend {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
     margin-top: 0.75rem;
     padding: 0;
-    font-size: 0.875rem;
+    color: #7f3554;
+    font-size: 0.8rem;
     list-style: none;
   }
 
@@ -173,19 +209,20 @@ const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
     display: inline-block;
     width: 0.75rem;
     height: 0.75rem;
-    border: 1px solid #777;
+    border: 1px solid #b96c89;
+    border-radius: 0.25rem;
   }
 
   .key.worked-out,
   .day.worked-out {
     color: #fff;
-    background: #111;
-    border-color: #111;
+    background: #8b3f5e;
+    border-color: #8b3f5e;
   }
 
   .key.rest,
   .day.rest {
-    background: #ddd;
+    background: #e5d8f2;
   }
 
   .key.skipped,
@@ -216,7 +253,7 @@ const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
 
   .weekdays {
     margin-bottom: 0.3rem;
-    color: #555;
+    color: #a35775;
     font-size: 0.75rem;
     text-align: center;
   }
@@ -229,8 +266,10 @@ const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
     display: grid;
     place-items: center;
     min-width: 0;
-    border: 1px solid #ddd;
-    color: #999;
+    border: 1px solid #edd0dc;
+    border-radius: 0.5rem;
+    color: #c597aa;
+    background: #fffafd;
     font-size: 0.875rem;
     text-decoration: none;
   }
@@ -238,8 +277,8 @@ const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
   .day.worked-out,
   .day.rest,
   .day.skipped {
-    color: #111;
-    border-color: #777;
+    color: #572139;
+    border-color: #b96c89;
   }
 
   .day.worked-out {
