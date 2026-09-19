@@ -28,10 +28,21 @@ interface Day {
 }
 
 type NutritionMetric = "calories" | "protein" | "weight";
-type WorkoutStatus = "worked out" | "rest" | "skipped";
+type WorkoutStatus = "worked out" | "rest" | "skipped" | "pending";
 
 const nutritionPath = resolve(process.cwd(), "data/cronometer/nutrition.csv");
 const workoutsPath = resolve(process.cwd(), "data/hevy-workouts.json");
+const currentDateParts = Object.fromEntries(
+  new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/St_Johns",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+    .formatToParts(new Date())
+    .map(({ type, value }) => [type, value]),
+);
+const today = `${currentDateParts.year}-${currentDateParts.month}-${currentDateParts.day}`;
 
 const nutrition: Nutrition[] = existsSync(nutritionPath)
   ? readFileSync(nutritionPath, "utf8")
@@ -143,6 +154,8 @@ const workoutLabel = (day: Day) => {
     return day.workouts.map((workout) => workout.title).join(", ");
   }
 
+  if (day.date === today) return "";
+
   return days.get(previousDate(day.date))?.workouts.length ? "Rest" : "Skipped";
 };
 
@@ -219,9 +232,11 @@ const charts = [
 const workoutDays = trackedDates.map((date) => {
   const status: WorkoutStatus = days.get(date)?.workouts.length
     ? "worked out"
-    : days.get(previousDate(date))?.workouts.length
-      ? "rest"
-      : "skipped";
+    : date === today
+      ? "pending"
+      : days.get(previousDate(date))?.workouts.length
+        ? "rest"
+        : "skipped";
   return { date, status };
 });
 ---
