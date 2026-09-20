@@ -9,7 +9,6 @@ interface Props {
   dates: string[];
   actualPoints: Point[];
   averagePoints: Point[];
-  referencePoints?: Point[];
   unit: string;
   decimals?: number;
   target?: number;
@@ -20,7 +19,6 @@ const {
   dates,
   actualPoints,
   averagePoints,
-  referencePoints = [],
   unit,
   decimals = 0,
   target,
@@ -33,7 +31,6 @@ const chartHeight = height - padding.top - padding.bottom;
 const values = [
   ...actualPoints.map(({ value }) => value),
   ...averagePoints.map(({ value }) => value),
-  ...referencePoints.map(({ value }) => value),
   ...(target === undefined ? [] : [target]),
 ];
 const minimum = values.length ? Math.min(...values) : 0;
@@ -66,7 +63,6 @@ const segments = (points: Point[]) =>
   });
 const actualSegments = segments(actualPoints);
 const averageSegments = segments(averagePoints);
-const referenceSegments = segments(referencePoints);
 const ticks = [
   upperBound,
   target ?? (upperBound + lowerBound) / 2,
@@ -115,9 +111,6 @@ const formatDate = (date: string) => date.slice(5);
 
         {actualSegments.map((path) => (
           <path class="actual" d={path} />
-        ))}
-        {referenceSegments.map((path) => (
-          <path class="reference" d={path} />
         ))}
         {averageSegments.map((path) => (
           <path class="average" d={path} />
@@ -176,7 +169,6 @@ const formatDate = (date: string) => date.slice(5);
   }
 
   path.actual,
-  path.reference,
   path.average {
     fill: none;
     stroke: #111;
@@ -189,11 +181,6 @@ const formatDate = (date: string) => date.slice(5);
   path.actual {
     stroke: #777;
     stroke-dasharray: 1 6;
-    stroke-width: 1;
-  }
-
-  path.reference {
-    stroke: #999;
     stroke-width: 1;
   }
 

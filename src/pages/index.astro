@@ -4,7 +4,6 @@ import { resolve } from "node:path";
 import RollingAverageChart from "../components/RollingAverageChart.astro";
 import WorkoutCalendar from "../components/WorkoutCalendar.astro";
 import { rollingAverage } from "../lib/rolling-average.ts";
-import { weightLossLine } from "../lib/weight-loss-line.ts";
 import { workoutStatus } from "../lib/workout-status.ts";
 
 interface Nutrition {
@@ -193,7 +192,6 @@ const charts = [
     dates: trackedDates,
     actualPoints: weightPoints,
     averagePoints: rollingAverage(trackedDates, weightPoints),
-    referencePoints: weightLossLine(trackedDates, weightPoints[0]),
     unit: nutrition.findLast((entry) => entry.weightUnit)?.weightUnit ?? "",
     decimals: 1,
   },
