@@ -1,0 +1,29 @@
+src/components/WorkoutCalendar.astro
+  s_dd7bb5d1a21441::t_ea0f667bdbd8dd 2,233
+src/lib/workout-status.ts
+  s_dd7bb5d1a21441::t_ea0f667bdbd8dd 1,10
+  s_dd7bb5d1a21441::t_c50c9afe964b93 2-9,11
+scripts/workout-status.test.ts
+  s_dd7bb5d1a21441::t_c50c9afe964b93 1-20,22-27,29-32,34,36-38,41-42,44-46
+  s_dd7bb5d1a21441::t_ea0f667bdbd8dd 21,28,33,35,39,43
+  s_dd7bb5d1a21441::t_636098ea061b68 40
+src/pages/index.astro
+  s_dd7bb5d1a21441::t_ea0f667bdbd8dd 169
+  s_dd7bb5d1a21441::t_c50c9afe964b93 6,163-168,170-179,235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b2419c0fec03c6a8d188d984856526212014139f",
+  "prompts": {},
+  "sessions": {
+    "s_dd7bb5d1a21441": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a07491-0022-7200-b16e-12ebdd21b411",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Ethan Denny <ethandenny@protonmail.com>"
+    }
+  }
+}
