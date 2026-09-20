@@ -48,7 +48,7 @@ if (startDate && endDate) {
     const year = cursor.getUTCFullYear();
     const month = cursor.getUTCMonth();
     const dayCount = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-    const leadingDayCount = cursor.getUTCDay();
+    const leadingDayCount = (cursor.getUTCDay() + 6) % 7;
     const leadingDays = Array.from({ length: leadingDayCount }, (_, index) =>
       calendarDay(new Date(Date.UTC(year, month, index - leadingDayCount + 1))),
     );
@@ -64,7 +64,7 @@ if (startDate && endDate) {
   }
 }
 
-const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+const weekdays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 ---
 
 <section aria-labelledby="calendar-title">
