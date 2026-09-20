@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import RollingAverageChart from "../components/RollingAverageChart.astro";
 import WorkoutCalendar from "../components/WorkoutCalendar.astro";
+import { workoutStatus } from "../lib/workout-status.ts";
 
 interface Nutrition {
   date: string;
@@ -28,7 +29,6 @@ interface Day {
 }
 
 type NutritionMetric = "calories" | "protein" | "weight";
-type WorkoutStatus = "worked out" | "rest" | "skipped" | "pending";
 
 const nutritionPath = resolve(process.cwd(), "data/cronometer/nutrition.csv");
 const workoutsPath = resolve(process.cwd(), "data/hevy-workouts.json");
@@ -144,21 +144,6 @@ const formatLifted = (day: Day) => {
   const pounds = formatNumber(kilograms * 2.2046226218).padStart(6, "\u00a0");
   return `${pounds} lbs`;
 };
-const previousDate = (date: string) => {
-  const value = new Date(`${date}T00:00:00Z`);
-  value.setUTCDate(value.getUTCDate() - 1);
-  return value.toISOString().slice(0, 10);
-};
-const workoutLabel = (day: Day) => {
-  if (day.workouts.length > 0) {
-    return day.workouts.map((workout) => workout.title).join(", ");
-  }
-
-  if (day.date === today) return "";
-
-  return days.get(previousDate(day.date))?.workouts.length ? "Rest" : "Skipped";
-};
-
 const toDate = (date: string) => new Date(`${date}T00:00:00Z`);
 const toIsoDate = (date: Date) => date.toISOString().slice(0, 10);
 const dateRange = (start: string, end: string) => {
@@ -175,6 +160,23 @@ const dateRange = (start: string, end: string) => {
 const startDate = chronologicalDates[0] ?? "";
 const endDate = chronologicalDates.at(-1) ?? "";
 const trackedDates = startDate && endDate ? dateRange(startDate, endDate) : [];
+const workoutDates = new Set(
+  [...days.values()]
+    .filter((day) => day.workouts.length > 0)
+    .map((day) => day.date),
+);
+const statusForDate = (date: string) =>
+  workoutStatus(date, today, workoutDates);
+const workoutLabel = (day: Day) => {
+  if (day.workouts.length > 0) {
+    return day.workouts.map((workout) => workout.title).join(", ");
+  }
+
+  const status = statusForDate(day.date);
+  return status === "pending"
+    ? ""
+    : status.charAt(0).toUpperCase() + status.slice(1);
+};
 const actualValues = (metric: NutritionMetric) =>
   nutrition.flatMap((entry) => {
     const value = entry[metric];
@@ -230,14 +232,7 @@ const charts = [
   },
 ];
 const workoutDays = trackedDates.map((date) => {
-  const status: WorkoutStatus = days.get(date)?.workouts.length
-    ? "worked out"
-    : date === today
-      ? "pending"
-      : days.get(previousDate(date))?.workouts.length
-        ? "rest"
-        : "skipped";
-  return { date, status };
+  return { date, status: statusForDate(date) };
 });
 ---
 

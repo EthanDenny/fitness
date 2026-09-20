@@ -1,5 +1,5 @@
 ---
-type WorkoutStatus = "worked out" | "rest" | "skipped" | "pending";
+type WorkoutStatus = "worked out" | "rest" | "pending";
 
 interface StatusDay {
   date: string;
@@ -112,7 +112,6 @@ const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
   <ul class="legend" aria-label="workout status legend">
     <li><span class="key worked-out"></span>worked out</li>
     <li><span class="key rest"></span>rest</li>
-    <li><span class="key skipped"></span>skipped</li>
   </ul>
 </section>
 
@@ -188,11 +187,6 @@ const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
     background: #ddd;
   }
 
-  .key.skipped,
-  .day.skipped {
-    border-style: dashed;
-  }
-
   .months {
     display: grid;
     grid-template-columns: 1fr;
@@ -236,8 +230,7 @@ const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
   }
 
   .day.worked-out,
-  .day.rest,
-  .day.skipped {
+  .day.rest {
     color: #111;
     border-color: #777;
   }
