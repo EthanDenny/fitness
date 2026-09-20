@@ -272,17 +272,25 @@ export function compactNutritionCsv(
   };
   if (indices.date === -1) throw new Error("Cronometer nutrition export is missing Date");
 
-  const compactRows = [NUTRITION_HEADER];
+  const nutritionRows = new Map<string, string[]>();
   for (const row of rows.slice(1)) {
     const date = row[indices.date]?.trim();
     if (!date) continue;
 
-    const protein = requiredNumber(row, indices.protein, "Protein (g)");
-    const carbs = requiredNumber(row, indices.carbs, "Carbs (g)");
-    const fat = requiredNumber(row, indices.fat, "Fat (g)");
-    const fiber = requiredNumber(row, indices.fiber, "Fiber (g)");
-    const calories = caloriesByDate.get(date);
-    if (!Number.isFinite(calories)) {
+    nutritionRows.set(date, row);
+  }
+
+  const compactRows = [NUTRITION_HEADER];
+  const dates = new Set([...nutritionRows.keys(), ...weightsByDate.keys()]);
+  for (const date of [...dates].sort()) {
+    const row = nutritionRows.get(date);
+    const protein = row ? requiredNumber(row, indices.protein, "Protein (g)") : "";
+    const carbs = row ? requiredNumber(row, indices.carbs, "Carbs (g)") : "";
+    const fat = row ? requiredNumber(row, indices.fat, "Fat (g)") : "";
+    const fiber = row ? requiredNumber(row, indices.fiber, "Fiber (g)") : "";
+
+    const calories = row ? caloriesByDate.get(date) : "";
+    if (row && !Number.isFinite(calories)) {
       throw new Error(`Cronometer Energy History is missing calories for ${date}`);
     }
     const weight = weightsByDate.get(date);

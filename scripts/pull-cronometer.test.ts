@@ -90,6 +90,20 @@ test("compactNutritionCsv keeps only the requested nutrition fields", () => {
   );
 });
 
+test("compactNutritionCsv preserves days with weight but no nutrition entries", () => {
+  const source = "Date,Protein (g),Carbs (g),Fat (g),Fiber (g)\n";
+  const result = compactNutritionCsv(
+    source,
+    new Map([["2026-09-20", 0]]),
+    new Map([["2026-09-20", { amount: 212.6, unit: "lbs" }]]),
+  );
+  assert.equal(
+    result,
+    "Date,Calories (kcal),Protein (g),Carbs (g),Fat (g),Fiber (g),Weight,Weight Unit\n" +
+      "2026-09-20,,,,,,212.6,lbs\n",
+  );
+});
+
 test("parseWeightsCsv keeps the latest weight and its source unit", () => {
   const source = [
     "Day,Time,Group,Metric,Unit,Amount",
