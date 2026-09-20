@@ -1,0 +1,38 @@
+scripts/weight-loss-line.test.ts
+  s_dd7bb5d1a21441::t_f2dbffbd1897d7 1-21
+src/components/RollingAverageChart.astro
+  s_dd7bb5d1a21441::t_2c854f98070007 12,23,36,69,119-121,179,195-196
+  s_dd7bb5d1a21441::t_2eb5036cdfa29b 197-199
+scripts/pull-cronometer.ts
+  s_dd7bb5d1a21441::t_abb4525fa58ce3 275,280-290
+  s_dd7bb5d1a21441::t_6085283d3e23a9 292-293
+  s_dd7bb5d1a21441::t_c8472a3a2f1d6c 291
+src/lib/weight-loss-line.ts
+  s_dd7bb5d1a21441::t_f2dbffbd1897d7 1-23
+src/pages/index.astro
+  s_dd7bb5d1a21441::t_2c854f98070007 7,189,194-196
+  s_dd7bb5d1a21441::t_6fcc8155e74234 6,204,213
+scripts/rolling-average.test.ts
+  s_dd7bb5d1a21441::t_6fcc8155e74234 1-38
+src/lib/rolling-average.ts
+  s_dd7bb5d1a21441::t_6fcc8155e74234 1-30
+scripts/pull-cronometer.test.ts
+  s_dd7bb5d1a21441::t_abb4525fa58ce3 93-102,104-106
+  s_dd7bb5d1a21441::t_6085283d3e23a9 103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "edcc71ccb638f15b01f4aa00effaf3898c9f2f81",
+  "prompts": {},
+  "sessions": {
+    "s_dd7bb5d1a21441": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a07491-0022-7200-b16e-12ebdd21b411",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Ethan Denny <ethandenny@protonmail.com>"
+    }
+  }
+}
