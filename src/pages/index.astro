@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import RollingAverageChart from "../components/RollingAverageChart.astro";
 import WorkoutCalendar from "../components/WorkoutCalendar.astro";
 import { rollingAverage } from "../lib/rolling-average.ts";
+import { weightTargetLine } from "../lib/weight-target-line.ts";
 import { workoutStatus } from "../lib/workout-status.ts";
 
 interface Nutrition {
@@ -161,6 +162,15 @@ const dateRange = (start: string, end: string) => {
 const startDate = chronologicalDates[0] ?? "";
 const endDate = chronologicalDates.at(-1) ?? "";
 const trackedDates = startDate && endDate ? dateRange(startDate, endDate) : [];
+const weightTargetEndDate = "2026-11-07";
+const weightChartDates = startDate
+  ? dateRange(
+      startDate,
+      endDate.localeCompare(weightTargetEndDate) > 0
+        ? endDate
+        : weightTargetEndDate,
+    )
+  : [];
 const workoutDates = new Set(
   [...days.values()]
     .filter((day) => day.workouts.length > 0)
@@ -186,12 +196,18 @@ const actualValues = (metric: NutritionMetric) =>
       : [];
   });
 const weightPoints = actualValues("weight");
+const weightGuide = weightTargetLine(
+  weightChartDates,
+  { date: "2026-09-05", value: 215.2 },
+  { date: weightTargetEndDate, value: 200 },
+);
 const charts = [
   {
     title: "weight",
-    dates: trackedDates,
+    dates: weightChartDates,
     actualPoints: weightPoints,
     averagePoints: rollingAverage(trackedDates, weightPoints),
+    guidePoints: weightGuide,
     unit: nutrition.findLast((entry) => entry.weightUnit)?.weightUnit ?? "",
     decimals: 1,
   },
