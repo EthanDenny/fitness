@@ -12,10 +12,17 @@ const dates = [
   "2026-09-20",
 ];
 
-test("waits for a complete calendar window", () => {
+test("builds partial averages from the first day", () => {
   assert.deepEqual(
-    rollingAverage(dates.slice(0, 6), dates.slice(0, 6).map((date) => ({ date, value: 1 }))),
-    [],
+    rollingAverage(
+      dates.slice(0, 3),
+      dates.slice(0, 3).map((date, index) => ({ date, value: index + 1 })),
+    ),
+    [
+      { date: "2026-09-14", value: 1 },
+      { date: "2026-09-15", value: 1.5 },
+      { date: "2026-09-16", value: 2 },
+    ],
   );
 });
 
@@ -25,14 +32,15 @@ test("averages only non-null values inside the calendar window", () => {
     value: index + 1,
   }));
 
-  assert.deepEqual(rollingAverage(dates, points), [
-    { date: "2026-09-20", value: 3.5 },
-  ]);
+  assert.equal(rollingAverage(dates, points).at(-1)?.value, 3.5);
 });
 
-test("uses all seven values when none are null", () => {
-  const points = dates.map((date, index) => ({ date, value: index + 1 }));
-  assert.deepEqual(rollingAverage(dates, points), [
-    { date: "2026-09-20", value: 4 },
-  ]);
+test("uses only the latest seven values once the window is full", () => {
+  const eightDates = [...dates, "2026-09-21"];
+  const points = eightDates.map((date, index) => ({ date, value: index + 1 }));
+
+  assert.deepEqual(rollingAverage(eightDates, points).at(-1), {
+    date: "2026-09-21",
+    value: 5,
+  });
 });

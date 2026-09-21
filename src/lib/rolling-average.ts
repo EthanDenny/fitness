@@ -11,10 +11,8 @@ export const rollingAverage = (
   const valuesByDate = new Map(points.map(({ date, value }) => [date, value]));
 
   return dates.flatMap((date, index) => {
-    if (index < windowSize - 1) return [];
-
     const values = dates
-      .slice(index - windowSize + 1, index + 1)
+      .slice(Math.max(0, index - windowSize + 1), index + 1)
       .map((windowDate) => valuesByDate.get(windowDate))
       .filter((value): value is number =>
         typeof value === "number" && Number.isFinite(value),
