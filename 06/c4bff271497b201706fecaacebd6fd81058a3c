@@ -1,0 +1,35 @@
+scripts/weight-target-line.test.ts
+  s_dd7bb5d1a21441::t_2f0aeadb214b83 1-30
+src/pages/index.astro
+  s_dd7bb5d1a21441::t_b47c41a971e771 7,165-173,199-203,207,210
+src/lib/weight-target-line.ts
+  s_dd7bb5d1a21441::t_b47c41a971e771 12-14
+  s_dd7bb5d1a21441::t_2f0aeadb214b83 1-11,15-25
+src/components/RollingAverageChart.astro
+  s_dd7bb5d1a21441::t_b47c41a971e771 12,23,36,69,119-121,179,195-196
+  s_03960944e98fee::t_cea9a2b1f5ff43 197-199
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "06c4bff271497b201706fecaacebd6fd81058a3c",
+  "prompts": {},
+  "sessions": {
+    "s_03960944e98fee": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0c419-6c4d-7233-8a0d-ec50e8564bc4",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Ethan Denny <ethandenny@protonmail.com>"
+    },
+    "s_dd7bb5d1a21441": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a07491-0022-7200-b16e-12ebdd21b411",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Ethan Denny <ethandenny@protonmail.com>"
+    }
+  }
+}
