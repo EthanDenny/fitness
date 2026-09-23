@@ -149,6 +149,17 @@ test("mergeNutritionCsv replaces only the selected dates", () => {
   );
 });
 
+test("mergeNutritionCsv preserves a saved weight when Cronometer has none", () => {
+  const header = "Date,Calories (kcal),Protein (g),Carbs (g),Fat (g),Fiber (g),Weight,Weight Unit";
+  const existing = `${header}\n2026-09-23,1800,160,130,70,17,211.0,lbs\n`;
+  const update = `${header}\n2026-09-23,1850,165,135,72,18,,\n`;
+
+  assert.equal(
+    mergeNutritionCsv(existing, update, "2026-09-23", "2026-09-23"),
+    `${header}\n2026-09-23,1850,165,135,72,18,211.0,lbs\n`,
+  );
+});
+
 test("caloriesBody requests the inclusive date range using Cronometer days", () => {
   const body = caloriesBody("header", "nonce", -42, "2026-09-05", "2026-09-06");
   assert.match(body, /getCaloriesConsumedAndBurned/);

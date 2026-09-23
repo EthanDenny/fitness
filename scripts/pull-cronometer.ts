@@ -363,6 +363,7 @@ export function mergeNutritionCsv(
   end: string,
 ): string {
   const rowsByDate = new Map<string, string[]>();
+  const existingRowsInRange = new Map<string, string[]>();
   const normalizeRow = (row: string[]) => [
     ...row.slice(0, 8),
     ...Array(Math.max(0, 8 - row.length)).fill(""),
@@ -370,13 +371,20 @@ export function mergeNutritionCsv(
 
   for (const row of parseCsv(existingCsv).slice(1)) {
     const date = row[0]?.trim();
-    if (date && (date < start || date > end)) {
-      rowsByDate.set(date, normalizeRow(row));
-    }
+    if (!date) continue;
+    if (date < start || date > end) rowsByDate.set(date, normalizeRow(row));
+    else existingRowsInRange.set(date, normalizeRow(row));
   }
   for (const row of parseCsv(updateCsv).slice(1)) {
     const date = row[0]?.trim();
-    if (date) rowsByDate.set(date, normalizeRow(row));
+    if (!date) continue;
+    const updated = normalizeRow(row);
+    const existing = existingRowsInRange.get(date);
+    if (!updated[6] && existing?.[6] && existing[7]) {
+      updated[6] = existing[6];
+      updated[7] = existing[7];
+    }
+    rowsByDate.set(date, updated);
   }
 
   const rows = [...rowsByDate.entries()]
