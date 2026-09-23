@@ -33,6 +33,7 @@ type NutritionMetric = "calories" | "protein" | "weight";
 
 const nutritionPath = resolve(process.cwd(), "data/cronometer/nutrition.csv");
 const workoutsPath = resolve(process.cwd(), "data/hevy-workouts.json");
+const workoutOverridesPath = resolve(process.cwd(), "data/workout-overrides.json");
 const currentDateParts = Object.fromEntries(
   new Intl.DateTimeFormat("en-US", {
     timeZone: "America/St_Johns",
@@ -87,6 +88,10 @@ if (existsSync(workoutsPath)) {
     );
   }
 }
+
+const workoutOverrides: Record<string, string> = existsSync(workoutOverridesPath)
+  ? JSON.parse(readFileSync(workoutOverridesPath, "utf8"))
+  : {};
 
 const days = new Map<string, Day>();
 for (const entry of nutrition) {
@@ -167,11 +172,20 @@ const workoutDates = new Set(
     .map((day) => day.date),
 );
 const statusForDate = (date: string) =>
-  workoutStatus(date, today, workoutDates);
+  workoutDates.has(date)
+    ? "worked out"
+    : workoutOverrides[date] === "rest"
+      ? "rest"
+      : workoutOverrides[date]
+        ? "worked out"
+        : workoutStatus(date, today, workoutDates);
 const workoutLabel = (day: Day) => {
   if (day.workouts.length > 0) {
     return day.workouts.map((workout) => workout.title).join(", ");
   }
+
+  const override = workoutOverrides[day.date];
+  if (override) return override.charAt(0).toUpperCase() + override.slice(1);
 
   const status = statusForDate(day.date);
   return status === "pending"

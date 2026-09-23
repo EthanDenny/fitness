@@ -19,6 +19,7 @@ pnpm-debug.log*
 
 # personal workout exports
 data/hevy-workouts.json
+data/workout-overrides.json
 
 # private Cronometer exports
 data/cronometer/
