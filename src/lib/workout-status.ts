@@ -6,6 +6,6 @@ export const workoutStatus = (
   workoutDates: ReadonlySet<string>,
 ): WorkoutStatus => {
   if (workoutDates.has(date)) return "worked out";
-  if (date === today) return "pending";
+  if (date >= today) return "pending";
   return "rest";
 };

@@ -30,6 +30,13 @@ test("leaves the current day pending when it has no workout", () => {
   );
 });
 
+test("leaves future days pending when food is logged in advance", () => {
+  assert.equal(
+    workoutStatus("2026-09-24", "2026-09-22", workoutDates),
+    "pending",
+  );
+});
+
 test("marks every completed no-workout day as rest", () => {
   assert.equal(
     workoutStatus("2026-09-17", "2026-09-19", workoutDates),
