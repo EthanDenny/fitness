@@ -17,7 +17,7 @@ const DEFAULT_GWT_HEADER = "13F6CC6C06AE73A6E95DE9B0233AB365";
 const NUTRITION_EXPORT = { generate: "dailySummary", filename: "nutrition.csv" };
 const BIOMETRICS_EXPORT = { generate: "biometrics" };
 const NUTRITION_HEADER =
-  "Date,Calories (kcal),Protein (g),Carbs (g),Fat (g),Fiber (g),Weight,Weight Unit";
+  "Date,Calories (kcal),Protein (g),Carbs (g),Fat (g),Fiber (g),Weight,Weight Unit,Nutrition Status";
 
 interface WeightMeasurement {
   amount: number;
@@ -305,6 +305,7 @@ export function compactNutritionCsv(
         fiber,
         weight?.amount ?? "",
         weight?.unit ?? "",
+        row ? "logged" : "",
       ].join(","),
     );
   }
@@ -365,8 +366,8 @@ export function mergeNutritionCsv(
   const rowsByDate = new Map<string, string[]>();
   const existingRowsInRange = new Map<string, string[]>();
   const normalizeRow = (row: string[]) => [
-    ...row.slice(0, 8),
-    ...Array(Math.max(0, 8 - row.length)).fill(""),
+    ...row.slice(0, 9),
+    ...Array(Math.max(0, 9 - row.length)).fill(""),
   ];
 
   for (const row of parseCsv(existingCsv).slice(1)) {
@@ -383,6 +384,11 @@ export function mergeNutritionCsv(
     if (!updated[6] && existing?.[6] && existing[7]) {
       updated[6] = existing[6];
       updated[7] = existing[7];
+    }
+    if (updated.slice(1, 6).some(Boolean)) {
+      updated[8] = "logged";
+    } else if (existing?.[8] === "skipped") {
+      updated[8] = "skipped";
     }
     rowsByDate.set(date, updated);
   }

@@ -2,6 +2,7 @@
 interface Point {
   date: string;
   value: number;
+  incomplete?: boolean;
 }
 
 interface Props {
@@ -81,7 +82,11 @@ const formatDate = (date: string) => date.slice(5);
   <figcaption>
     <span class="title">{title}</span>
     <strong>
-      {latestAverage ? `${formatValue(latestAverage.value)} ${unit}` : "—"}
+      {
+        latestAverage
+          ? `${latestAverage.incomplete ? "~" : ""}${formatValue(latestAverage.value)} ${unit}`
+          : "—"
+      }
     </strong>
   </figcaption>
 

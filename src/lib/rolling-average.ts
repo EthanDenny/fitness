@@ -3,16 +3,23 @@ export interface DatedValue {
   value: number;
 }
 
+export interface RollingAverageValue extends DatedValue {
+  incomplete: boolean;
+}
+
 export const rollingAverage = (
   dates: string[],
   points: DatedValue[],
   windowSize = 7,
-): DatedValue[] => {
+): RollingAverageValue[] => {
   const valuesByDate = new Map(points.map(({ date, value }) => [date, value]));
 
   return dates.flatMap((date, index) => {
-    const values = dates
-      .slice(Math.max(0, index - windowSize + 1), index + 1)
+    const windowDates = dates.slice(
+      Math.max(0, index - windowSize + 1),
+      index + 1,
+    );
+    const values = windowDates
       .map((windowDate) => valuesByDate.get(windowDate))
       .filter((value): value is number =>
         typeof value === "number" && Number.isFinite(value),
@@ -22,6 +29,7 @@ export const rollingAverage = (
       ? [{
           date,
           value: values.reduce((sum, value) => sum + value, 0) / values.length,
+          incomplete: values.length < windowDates.length,
         }]
       : [];
   });

@@ -15,6 +15,7 @@ interface Nutrition {
   fiber?: number;
   weight?: number;
   weightUnit?: string;
+  status?: string;
 }
 
 interface Workout {
@@ -53,7 +54,7 @@ const nutrition: Nutrition[] = existsSync(nutritionPath)
       .slice(1)
       .filter(Boolean)
       .map((line) => {
-        const [date, calories, protein, carbs, fat, fiber, weight, weightUnit] =
+        const [date, calories, protein, carbs, fat, fiber, weight, weightUnit, status] =
           line.split(",");
         return {
           date,
@@ -64,6 +65,7 @@ const nutrition: Nutrition[] = existsSync(nutritionPath)
           fiber: fiber ? Number(fiber) : undefined,
           weight: weight ? Number(weight) : undefined,
           weightUnit: weightUnit || undefined,
+          status: status || undefined,
         };
       })
   : [];
@@ -269,6 +271,7 @@ const workoutDays = trackedDates.map((date) => {
                 <tbody>
                   {entries.map((day, index) => (
                     <tr
+                      data-nutrition-status={day.nutrition?.status}
                       data-older-entry={index >= 7 ? "" : undefined}
                       hidden={index >= 7}
                     >
@@ -323,6 +326,7 @@ const workoutDays = trackedDates.map((date) => {
               </div>
               {entries.map((day, index) => (
                 <details
+                  data-nutrition-status={day.nutrition?.status}
                   data-older-entry={index >= 7 ? "" : undefined}
                   hidden={index >= 7}
                 >
