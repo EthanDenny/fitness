@@ -1,0 +1,27 @@
+src/lib/rolling-average.ts
+  s_dd7bb5d1a21441::t_140c77d2ee5878 6-9,14,18-22,32
+src/components/RollingAverageChart.astro
+  s_dd7bb5d1a21441::t_140c77d2ee5878 5,85-89
+scripts/pull-cronometer.ts
+  s_dd7bb5d1a21441::t_8d7c57b9e98e47 20
+  s_dd7bb5d1a21441::t_c978738ebc9e93 308,369-370,388-391
+  s_dd7bb5d1a21441::t_c4c856ba9bf924 392
+src/pages/index.astro
+  s_dd7bb5d1a21441::t_b93e23da6bca29 18,57,68,274,329
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "efa16d45353ff71d7c3167c0176dccb8d89bc08c",
+  "prompts": {},
+  "sessions": {
+    "s_dd7bb5d1a21441": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a07491-0022-7200-b16e-12ebdd21b411",
+        "model": "gpt-6-luna"
+      },
+      "human_author": "Ethan Denny <ethandenny@protonmail.com>"
+    }
+  }
+}
