@@ -10,9 +10,11 @@ interface Props {
   startDate: string;
   endDate: string;
   days: StatusDay[];
+  workoutCount: number;
+  totalDays: number;
 }
 
-const { startDate, endDate, days } = Astro.props;
+const { startDate, endDate, days, workoutCount, totalDays } = Astro.props;
 const statuses = new Map(days.map(({ date, status }) => [date, status]));
 const toDate = (date: string) => new Date(`${date}T00:00:00Z`);
 const toIsoDate = (date: Date) => date.toISOString().slice(0, 10);
@@ -70,7 +72,7 @@ const weekdays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 <section aria-labelledby="calendar-title">
   <header>
     <h2 id="calendar-title">workouts</h2>
-    <p class="period">{months.at(-1)?.label}</p>
+    <p class="period">{workoutCount} in {totalDays} days</p>
   </header>
 
   <div class="months">

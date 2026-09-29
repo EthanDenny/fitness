@@ -233,6 +233,11 @@ const charts = [
 const workoutDays = trackedDates.map((date) => {
   return { date, status: statusForDate(date) };
 });
+const countStartDate = "2026-09-05";
+const countDates = dateRange(countStartDate, today);
+const workoutCount = countDates.filter(
+  (date) => statusForDate(date) === "worked out",
+).length;
 ---
 
 <!doctype html>
@@ -415,6 +420,8 @@ const workoutDays = trackedDates.map((date) => {
                 startDate={startDate}
                 endDate={endDate}
                 days={workoutDays}
+                workoutCount={workoutCount}
+                totalDays={countDates.length}
               />
             </section>
           </>
