@@ -1,0 +1,29 @@
+scripts/pull-hevy-workouts.ts
+  s_dd7bb5d1a21441::t_5825a8d9b8d7b8 7,12-13,74,318-319
+scripts/pull-fitness-data.ts
+  s_dd7bb5d1a21441::t_5825a8d9b8d7b8 6,40
+scripts/pull-hevy-workouts.test.ts
+  s_dd7bb5d1a21441::t_b09d1e43ff7576 170
+  s_dd7bb5d1a21441::t_6a16bd60e1b0c0 26-30,38-39
+  s_dd7bb5d1a21441::t_5825a8d9b8d7b8 7,31-37
+src/pages/index.astro
+  s_dd7bb5d1a21441::t_5825a8d9b8d7b8 6,39,94
+src/lib/fitness-date.ts
+  s_dd7bb5d1a21441::t_5825a8d9b8d7b8 1-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "7d76344f194bf620ad3fac4339e6a32259c4db80",
+  "prompts": {},
+  "sessions": {
+    "s_dd7bb5d1a21441": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a07491-0022-7200-b16e-12ebdd21b411",
+        "model": "gpt-6-sol"
+      },
+      "human_author": "Ethan Denny <ethandenny@protonmail.com>"
+    }
+  }
+}
