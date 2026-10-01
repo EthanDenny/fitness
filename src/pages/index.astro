@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import RollingAverageChart from "../components/RollingAverageChart.astro";
 import WorkoutCalendar from "../components/WorkoutCalendar.astro";
+import { fitnessDate } from "../lib/fitness-date.ts";
 import { rollingAverage } from "../lib/rolling-average.ts";
 import { workoutStatus } from "../lib/workout-status.ts";
 
@@ -35,17 +36,7 @@ type NutritionMetric = "calories" | "protein" | "weight";
 const nutritionPath = resolve(process.cwd(), "data/cronometer/nutrition.csv");
 const workoutsPath = resolve(process.cwd(), "data/hevy-workouts.json");
 const workoutOverridesPath = resolve(process.cwd(), "data/workout-overrides.json");
-const currentDateParts = Object.fromEntries(
-  new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/St_Johns",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  })
-    .formatToParts(new Date())
-    .map(({ type, value }) => [type, value]),
-);
-const today = `${currentDateParts.year}-${currentDateParts.month}-${currentDateParts.day}`;
+const today = fitnessDate(new Date());
 
 const nutrition: Nutrition[] = existsSync(nutritionPath)
   ? readFileSync(nutritionPath, "utf8")
@@ -100,7 +91,7 @@ for (const entry of nutrition) {
   days.set(entry.date, { date: entry.date, nutrition: entry, workouts: [] });
 }
 for (const workout of workouts) {
-  const date = workout.start_time.slice(0, 10);
+  const date = fitnessDate(workout.start_time);
   const day = days.get(date) ?? { date, workouts: [] };
   day.workouts.push(workout);
   days.set(date, day);

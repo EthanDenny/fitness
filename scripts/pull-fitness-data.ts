@@ -3,6 +3,7 @@
 import { spawn } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+import { fitnessDate } from "../src/lib/fitness-date.ts";
 import { MIN_EXPORT_DATE } from "./pull-cronometer.ts";
 
 const HELP = `Download fitness data from Cronometer and Hevy.
@@ -29,13 +30,6 @@ interface ExporterCommand {
   args: string[];
 }
 
-function formatLocalDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
 function isDate(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const date = new Date(`${value}T00:00:00Z`);
@@ -43,7 +37,7 @@ function isDate(value: string): boolean {
 }
 
 export function parseArgs(argv: string[], now = new Date()): DateRange | HelpOptions {
-  const today = formatLocalDate(now);
+  const today = fitnessDate(now);
   if (argv.length === 0) return { start: today, end: today, replace: false };
   if (argv.length === 1 && ["-h", "--help"].includes(argv[0])) return { help: true };
   if (argv.length === 1 && argv[0] === "--all") {

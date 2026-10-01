@@ -4,12 +4,13 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { fitnessDate, fitnessDayStart } from "../src/lib/fitness-date.ts";
 
 const DEFAULT_API_BASE_URL = "https://api.hevyapp.com/v1";
 const DEFAULT_OUTPUT_PATH = "data/hevy-workouts.json";
 const PAGE_SIZE = 10;
-export const WORKOUT_CUTOFF = "2026-09-05T00:00:00.000Z";
-export const WORKOUT_CUTOFF_DATE = WORKOUT_CUTOFF.slice(0, 10);
+export const WORKOUT_CUTOFF_DATE = "2026-09-05";
+export const WORKOUT_CUTOFF = fitnessDayStart(WORKOUT_CUTOFF_DATE);
 
 export interface Workout {
   id?: string;
@@ -70,7 +71,7 @@ function addDays(date: string, days: number): string {
 export function parseArgs(argv: string[], now = new Date()): HevyOptions {
   let outputPath = DEFAULT_OUTPUT_PATH;
   let start = WORKOUT_CUTOFF_DATE;
-  let end = formatUtcDate(now);
+  let end = fitnessDate(now);
   let replace = false;
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -314,8 +315,8 @@ async function main() {
     return;
   }
 
-  const cutoff = `${start}T00:00:00.000Z`;
-  const through = `${addDays(end, 1)}T00:00:00.000Z`;
+  const cutoff = fitnessDayStart(start);
+  const through = fitnessDayStart(addDays(end, 1));
   let workouts = await fetchAllWorkouts({
     apiKey: process.env.HEVY_API_KEY,
     cutoff,

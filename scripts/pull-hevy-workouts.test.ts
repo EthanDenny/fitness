@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
+import { fitnessDate, fitnessDayStart } from "../src/lib/fitness-date.ts";
 import {
   fetchAllWorkouts,
   mergeWorkouts,
@@ -20,6 +21,20 @@ test("parseArgs accepts a custom output path", () => {
     end: "2026-09-06",
     replace: false,
   });
+});
+
+test("parseArgs keeps late UTC hours on the Newfoundland calendar day", () => {
+  assert.equal(
+    parseArgs([], new Date("2026-10-01T02:04:00.000Z")).end,
+    "2026-09-30",
+  );
+});
+
+test("Newfoundland day boundaries include workouts after UTC midnight", () => {
+  assert.equal(fitnessDayStart("2026-09-30"), "2026-09-30T02:30:00.000Z");
+  assert.equal(fitnessDayStart("2026-10-01"), "2026-10-01T02:30:00.000Z");
+  assert.equal(fitnessDate("2026-10-01T00:09:48+00:00"), "2026-09-30");
+  assert.equal(fitnessDayStart("2026-11-02"), "2026-11-02T03:30:00.000Z");
 });
 
 test("parseArgs accepts and validates a date range", () => {
@@ -152,7 +167,7 @@ test("writeExport writes metadata and workouts", async () => {
   const data = JSON.parse(await readFile(outputPath, "utf8"));
   assert.deepEqual(data, {
     exported_at: "2026-09-06T12:00:00.000Z",
-    workouts_since: "2026-09-05T00:00:00.000Z",
+    workouts_since: "2026-09-05T02:30:00.000Z",
     workout_count: 1,
     workouts: [workout],
   });
