@@ -158,6 +158,7 @@ const dateRange = (start: string, end: string) => {
 
 const startDate = chronologicalDates[0] ?? "";
 const endDate = chronologicalDates.at(-1) ?? "";
+const calendarStartDate = endDate ? `${endDate.slice(0, 7)}-01` : "";
 const trackedDates = startDate && endDate ? dateRange(startDate, endDate) : [];
 const workoutDates = new Set(
   [...days.values()]
@@ -225,10 +226,9 @@ const workoutDays = trackedDates.map((date) => {
   return { date, status: statusForDate(date) };
 });
 const countStartDate = "2026-09-05";
-const countDates = dateRange(countStartDate, today);
-const workoutCount = countDates.filter(
-  (date) => statusForDate(date) === "worked out",
-).length;
+const countedStatuses = dateRange(countStartDate, today).map(statusForDate);
+const workoutCount = countedStatuses.filter((status) => status === "worked out").length;
+const countedDays = countedStatuses.filter((status) => status !== "pending").length;
 ---
 
 <!doctype html>
@@ -408,11 +408,11 @@ const workoutCount = countDates.filter(
                 <RollingAverageChart {...chart} />
               ))}
               <WorkoutCalendar
-                startDate={startDate}
+                startDate={calendarStartDate}
                 endDate={endDate}
                 days={workoutDays}
                 workoutCount={workoutCount}
-                totalDays={countDates.length}
+                totalDays={countedDays}
               />
             </section>
           </>
