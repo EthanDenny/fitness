@@ -451,6 +451,7 @@ const countedDays = countedStatuses.filter((status) => status !== "pending").len
   }
 
   :global(html) {
+    scrollbar-gutter: stable;
     font-family: ui-monospace, "SFMono-Regular", "Cascadia Code", "Roboto Mono",
       Consolas, monospace;
     color: #111;
@@ -575,6 +576,10 @@ const countedDays = countedStatuses.filter((status) => status !== "pending").len
   td.column-fiber {
     font-variant-numeric: tabular-nums;
     text-align: right;
+  }
+
+  .column-fat {
+    min-width: calc(5ch + 1rem);
   }
 
   .empty {
