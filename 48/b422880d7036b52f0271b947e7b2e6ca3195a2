@@ -1,0 +1,23 @@
+src/pages/index.astro
+  s_dd7bb5d1a21441::t_84f052314efd56 203
+src/components/RollingAverageChart.astro
+  s_dd7bb5d1a21441::t_36332c384cf1b5 79
+  s_dd7bb5d1a21441::t_84f052314efd56 16,27,75-78,97-99
+  s_dd7bb5d1a21441::t_8119050d3ade34 100-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "48b422880d7036b52f0271b947e7b2e6ca3195a2",
+  "prompts": {},
+  "sessions": {
+    "s_dd7bb5d1a21441": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a07491-0022-7200-b16e-12ebdd21b411",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Ethan Denny <ethandenny@protonmail.com>"
+    }
+  }
+}
