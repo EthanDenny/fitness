@@ -200,6 +200,7 @@ const charts = [
     dates: trackedDates,
     actualPoints: weightPoints,
     averagePoints: rollingAverage(trackedDates, weightPoints),
+    showTotalChange: true,
     unit: nutrition.findLast((entry) => entry.weightUnit)?.weightUnit ?? "",
     decimals: 1,
   },

@@ -13,6 +13,7 @@ interface Props {
   unit: string;
   decimals?: number;
   target?: number;
+  showTotalChange?: boolean;
 }
 
 const {
@@ -23,6 +24,7 @@ const {
   unit,
   decimals = 0,
   target,
+  showTotalChange = false,
 } = Astro.props;
 const width = 360;
 const height = 210;
@@ -70,6 +72,11 @@ const ticks = [
   lowerBound,
 ];
 const latestAverage = averagePoints.at(-1);
+const startingValue = actualPoints.at(0);
+const totalChange =
+  showTotalChange && latestAverage && startingValue
+    ? latestAverage.value - startingValue.value
+    : undefined;
 const formatValue = (value: number) =>
   value.toLocaleString("en-CA", {
     minimumFractionDigits: decimals,
@@ -87,6 +94,11 @@ const formatDate = (date: string) => date.slice(5);
           ? `${latestAverage.incomplete ? "~" : ""}${formatValue(latestAverage.value)} ${unit}`
           : "—"
       }
+      {totalChange !== undefined && (
+        <span title={`Change from the starting weight on ${startingValue!.date}`}>
+          {` (${totalChange > 0 ? "+" : ""}${formatValue(totalChange)})`}
+        </span>
+      )}
     </strong>
   </figcaption>
 
