@@ -15,6 +15,11 @@ export const rollingAverage = (
   const valuesByDate = new Map(points.map(({ date, value }) => [date, value]));
 
   return dates.flatMap((date, index) => {
+    const currentValue = valuesByDate.get(date);
+    if (typeof currentValue !== "number" || !Number.isFinite(currentValue)) {
+      return [];
+    }
+
     const windowDates = dates.slice(
       Math.max(0, index - windowSize + 1),
       index + 1,

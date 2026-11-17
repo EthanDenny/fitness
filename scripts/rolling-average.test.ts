@@ -19,20 +19,33 @@ test("builds partial averages from the first day", () => {
       dates.slice(0, 3).map((date, index) => ({ date, value: index + 1 })),
     ),
     [
-      { date: "2026-09-14", value: 1 },
-      { date: "2026-09-15", value: 1.5 },
-      { date: "2026-09-16", value: 2 },
+      { date: "2026-09-14", value: 1, incomplete: false },
+      { date: "2026-09-15", value: 1.5, incomplete: false },
+      { date: "2026-09-16", value: 2, incomplete: false },
     ],
   );
 });
 
-test("averages only non-null values inside the calendar window", () => {
-  const points = dates.slice(0, 6).map((date, index) => ({
+test("leaves missing days empty and resumes averaging available values", () => {
+  const points = dates.map((date, index) => ({
     date,
     value: index + 1,
-  }));
+  })).filter((point) => point.date !== "2026-09-17");
 
-  assert.equal(rollingAverage(dates, points).at(-1)?.value, 3.5);
+  const averages = rollingAverage(dates, points);
+  assert(!averages.some((point) => point.date === "2026-09-17"));
+  assert.deepEqual(averages.find((point) => point.date === "2026-09-18"), {
+    date: "2026-09-18", value: 2.75, incomplete: true,
+  });
+  assert.deepEqual(averages.at(-1), {
+    date: "2026-09-20", value: 4, incomplete: true,
+  });
+});
+
+test("does not extend the average past the last measurement", () => {
+  assert.deepEqual(rollingAverage(dates, [{ date: dates[0], value: 0 }]), [
+    { date: dates[0], value: 0, incomplete: false },
+  ]);
 });
 
 test("uses only the latest seven values once the window is full", () => {
@@ -42,5 +55,6 @@ test("uses only the latest seven values once the window is full", () => {
   assert.deepEqual(rollingAverage(eightDates, points).at(-1), {
     date: "2026-09-21",
     value: 5,
+    incomplete: false,
   });
 });

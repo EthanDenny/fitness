@@ -97,7 +97,6 @@ for (const workout of workouts) {
   days.set(date, day);
 }
 
-const entries = [...days.values()].sort((a, b) => b.date.localeCompare(a.date));
 const chronologicalDates = [...days.keys()].sort((a, b) => a.localeCompare(b));
 const formatNumber = (value: number) =>
   Math.round(value).toLocaleString("en-CA");
@@ -157,9 +156,14 @@ const dateRange = (start: string, end: string) => {
 };
 
 const startDate = chronologicalDates[0] ?? "";
-const endDate = chronologicalDates.at(-1) ?? "";
+const endDate = startDate
+  ? [chronologicalDates.at(-1)!, today].sort().at(-1)!
+  : "";
 const calendarStartDate = endDate ? `${endDate.slice(0, 7)}-01` : "";
 const trackedDates = startDate && endDate ? dateRange(startDate, endDate) : [];
+const entries: Day[] = trackedDates.map((date) =>
+  days.get(date) ?? { date, workouts: [] },
+).reverse();
 const workoutDates = new Set(
   [...days.values()]
     .filter((day) => day.workouts.length > 0)
@@ -180,6 +184,7 @@ const workoutLabel = (day: Day) => {
 
   const override = workoutOverrides[day.date];
   if (override) return override.charAt(0).toUpperCase() + override.slice(1);
+  if (!day.nutrition) return "";
 
   const status = statusForDate(day.date);
   return status === "pending"
@@ -226,10 +231,6 @@ const charts = [
 const workoutDays = trackedDates.map((date) => {
   return { date, status: statusForDate(date) };
 });
-const countStartDate = "2026-09-05";
-const countedStatuses = dateRange(countStartDate, today).map(statusForDate);
-const workoutCount = countedStatuses.filter((status) => status === "worked out").length;
-const countedDays = countedStatuses.filter((status) => status !== "pending").length;
 ---
 
 <!doctype html>
@@ -412,8 +413,6 @@ const countedDays = countedStatuses.filter((status) => status !== "pending").len
                 startDate={calendarStartDate}
                 endDate={endDate}
                 days={workoutDays}
-                workoutCount={workoutCount}
-                totalDays={countedDays}
               />
             </section>
           </>

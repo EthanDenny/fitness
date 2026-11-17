@@ -60,9 +60,12 @@ const xPosition = (date: string) =>
 const yPosition = (value: number) =>
   padding.top + ((upperBound - value) / valueRange) * chartHeight;
 const segments = (points: Point[]) =>
-  points.slice(1).map((point, index) => {
+  points.slice(1).flatMap((point, index) => {
     const previous = points[index];
-    return `M ${xPosition(previous.date).toFixed(2)} ${yPosition(previous.value).toFixed(2)} L ${xPosition(point.date).toFixed(2)} ${yPosition(point.value).toFixed(2)}`;
+    if (dateIndexes.get(point.date)! - dateIndexes.get(previous.date)! !== 1) {
+      return [];
+    }
+    return [`M ${xPosition(previous.date).toFixed(2)} ${yPosition(previous.value).toFixed(2)} L ${xPosition(point.date).toFixed(2)} ${yPosition(point.value).toFixed(2)}`];
   });
 const actualSegments = segments(actualPoints);
 const averageSegments = segments(averagePoints);
